@@ -1,8 +1,8 @@
-import { useLocation } from "react-router-dom";
+
 import { useEffect } from "react";
 
 const Index = () => {
-  const location = useLocation();
+
 
 
   return (
