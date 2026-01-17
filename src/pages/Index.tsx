@@ -3,7 +3,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8">
-        <div className="mx-auto py-4 px-8 border rounded-lg border-gray-500 hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
+        <div className="mx-auto py-4 px-8 w-lg sm:w-fit border rounded-lg border-gray-500 hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
           <div className="flex flex-row sm:flex-col space-x-2">
             <div>Icon</div>
             <div className="flex flex-col space-between">
