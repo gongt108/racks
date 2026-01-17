@@ -1,36 +1,14 @@
-
-
 const Index = () => {
-
-
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto flex items-center justify-between gap-3 px-4 py-6">
-          <div className="flex items-center gap-3">
-            
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                Reading Notes
-              </h1>
-              
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-
-
-                Feed
-            
-  
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <h1>Hi</h1>
+        <div className="flex-row border rounded-lg border-gray-500 hover:border-rosee-600 transition-transform duration-200 hover:translate-x-1 hover:-translate-y-1">
+          <div>Icon</div>
+          <div className="flex space-between">
+            <h1 className="text-xl font-bold">Bulk Upload</h1>
+            <p className="text-md">Upload multiple items at once from your gallery</p>
+          </div>
         </div>
       </main>
 
