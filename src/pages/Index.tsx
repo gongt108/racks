@@ -6,8 +6,10 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8">
         <div className="mx-auto py-4 px-8 w-full md:w-[56rem] border rounded-lg border-gray-500 hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
-          <div className="flex flex-row sm:flex-col space-x-2">
-            <ImageIcon />
+          <div className="flex flex-col md:flex-row space-x-2">
+            <div className="bg-purple-600 p-3 rounded-md">
+              <ImageIcon className="w-6 h-6 text-white" />
+            </div>
             <div className="flex flex-col space-between">
               <h1 className="text-xl font-bold">Bulk Upload</h1>
               <p className="text-md">Upload multiple items at once from your gallery</p>
