@@ -21,7 +21,7 @@ const Index = () => {
 							</p>
 						</div>
 					</div>
-					<div className="rounded-lg bg-gray-200 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 mt-12 mb-6 p-4 space-y-2">
+					<div className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 mt-16 mb-8 py-8 px-4 space-y-2">
 						<UploadIcon className="text-pink-300 w-6 h-6" fontSize="large" />
 						<h2 className="font-semibold text-lg">Select Photos</h2>
 						<p>Choose multiple images</p>
