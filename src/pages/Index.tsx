@@ -71,9 +71,18 @@ const Index = () => {
 	        onChange={handleTypeSelection}
 	        className="text-sm border-gray-300 rounded-lg shadow-sm" // Apply Tailwind styles
 	      >
-	        <MenuItem value={10}>Shirt</MenuItem>
-	        <MenuItem value={20}>Skirt</MenuItem>
-	        <MenuItem value={30}>Dress</MenuItem>
+	        <MenuItem value={shirt}>
+										<FaShirt />
+										<p>Shirt<p>
+									</MenuItem>
+									<MenuItem value={skirt}>
+										<FaShirt />
+										<p>Skirt<p>
+									</MenuItem>
+	        <MenuItem value={shorts}>
+										<FaShirt />
+										<p>Shorts<p>
+									</MenuItem>
 	      </Select>
 	    </FormControl>
 						<p>Required for inventory tracking and analytics</p>
