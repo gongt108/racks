@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Card, Typography, Chip, Stack } from '@mui/material';
+import { Box, Typography, Chip, Stack } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -71,8 +71,8 @@ const stages: Stage[] = [
 
 export default function InventoryPipeline() {
 	return (
-		<div className="flex-1">
-			<Card className="rounded-xl border border-pink-200 shadow-lg max-w-[72rem] p-6 mx-auto">
+		<div className="py-8">
+			<div className="rounded-xl border border-pink-200 shadow-lg max-w-[72rem] p-6 mx-auto">
 				{/* Header */}
 				<Stack direction="row" alignItems="center" spacing={2} mb={3}>
 					<Box>
@@ -85,59 +85,55 @@ export default function InventoryPipeline() {
 					</Typography>
 				</Stack>
 				{/* Pipeline */}
-				<Stack
-					direction={{ xs: 'column', sm: 'row' }}
-					spacing={2}
-					justifyContent="space-between"
-				>
+				<div className="flex flex-col md:flex-row justify-between space-x-2">
 					{stages.map((stage) => (
-						<Card
-							key={stage.label}
-							sx={{
-								flex: 1,
-								borderRadius: 3,
-								backgroundColor: stage.bgColor,
-								p: 2,
-								textAlign: 'center',
-							}}
-						>
-							<Box
-								sx={{
-									width: 48,
-									height: 48,
-									borderRadius: '50%',
-									bgcolor: stage.iconBg,
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									color: '#fff',
-									mx: 'auto',
-									mb: 2,
-								}}
+						<div className="relative overflow-visible flex-1">
+							<div
+								key={stage.label}
+								style={{ backgroundColor: stage.bgColor }}
+								className={`relative rounded-sm p-4 text-center flex flex-col`}
 							>
-								{stage.icon}
-							</Box>
-							<Typography variant="body2" color="text.secondary">
-								{stage.label}
-							</Typography>
-							<Typography variant="h5" fontWeight={600}>
-								{stage.count}
-							</Typography>
-							<Chip
-								label={`$${stage.amount.toFixed(2)}`}
-								sx={{
-									mt: 1.5,
-									fontWeight: 500,
-									bgcolor: stage.amountColor
-										? 'rgba(46, 125, 50, 0.12)'
-										: 'rgba(0,0,0,0.08)',
-									color: stage.amountColor ?? 'text.primary',
-								}}
-							/>
-						</Card>
+								<Box
+									sx={{
+										width: 48,
+										height: 48,
+										borderRadius: '50%',
+										bgcolor: stage.iconBg,
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										color: '#fff',
+										mx: 'auto',
+										mb: 2,
+									}}
+								>
+									{stage.icon}
+								</Box>
+								<Typography variant="body2" color="text.secondary">
+									{stage.label}
+								</Typography>
+								<Typography variant="h5" fontWeight={600}>
+									{stage.count}
+								</Typography>
+								<Chip
+									label={`$${stage.amount.toFixed(2)}`}
+									sx={{
+										mt: 1.5,
+										fontWeight: 500,
+										bgcolor: stage.amountColor
+											? 'rgba(46, 125, 50, 0.12)'
+											: 'rgba(0,0,0,0.08)',
+										color: stage.amountColor ?? 'text.primary',
+									}}
+								/>
+							</div>
+							{stage !== stages[stages.length - 1] && (
+								<div className="invisible md:visible absolute top-0 right-[-2rem] h-full w-[3rem] bg-background [clip-path:polygon(75%_0%,100%_50%,75%_100%,0%_100%,25%_50%,0%_0%)] z-10"></div>
+							)}
+						</div>
 					))}
-				</Stack>
-			</Card>
+				</div>
+			</div>
 		</div>
 	);
 }
