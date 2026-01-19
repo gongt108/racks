@@ -4,7 +4,7 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt';
 
 const Index = () => {
 	return (
-		<div className="min-h-screen bg-background">
+		<div className="min-h-screen">
 			<main className="container mx-auto px-4 py-8 flex flex-col space-y-8">
 				<div className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg shadow-md border-gray-200 hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
 					<div className="flex flex-col items-center text-center md:items-start md:text-start md:flex-row">
