@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FaBoxOpen, FaSearch } from 'react-icons/fa';
 
 const Inventory = () => {
@@ -8,8 +8,11 @@ const Inventory = () => {
 		<div className="flex flex-col items-center justify-center">
 			<div className="bg-white w-full items-center justify-center">
 				<div className="w-full max-w-[72rem] mx-auto flex flex-row justify-between py-2">
-					<div className="flex flex-row">
-						<div>Bulk Select</div>
+					<div className="flex flex-row border rounded-lg">
+						<div className="flex flex-row">
+							<FaSearch />
+							<div>Bulk Select</div>
+						</div>
 						<div>Filter</div>
 					</div>
 					<div className="relative w-1/3">
