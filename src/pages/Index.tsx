@@ -1,8 +1,20 @@
+import { useState } from 'react';
 import UploadIcon from '@mui/icons-material/Upload';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import { FaShirt, FaBoxesStacked } from 'react-icons/fa6';
+import Box from '@mui/material/Box';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
 
 const Index = () => {
+	const [garmentType, setGarmentType] = useState('');
+
+  const handleTypeSelection = (event) => {
+    setGarmentType(event.target.value);
+  };
 	return (
 		<div className="min-h-screen">
 			<main className="container mx-auto px-4 py-8 flex flex-col space-y-8">
@@ -45,6 +57,26 @@ const Index = () => {
 					<div className="rounded-lg bg-gray-200 border-dashed flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2">
 						<CameraAltIcon className="text-pink-300" />
 						<p>Take photo</p>
+					</div>
+					<div className="rounded-lg bg-blue-200 border flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2">
+						<FaShirt className="text-purple-300" />
+						<h2 className="font-semibold text-lg">Item Classification</h2>
+						<p className="font-semibold">Garment type <span className="text-red-500">*</span></p>
+						<FormControl fullWidth className="w-64"> {/* Apply a Tailwind width utility */}
+	      <InputLabel id="select-label">Select Garment type...</InputLabel>
+	      <Select
+	        labelId="select-label"
+	        id="simple-select"
+	        value={garmentType}
+	        onChange={handleTypeSelection}
+	        className="text-sm border-gray-300 rounded-lg shadow-sm" // Apply Tailwind styles
+	      >
+	        <MenuItem value={10}>Shirt</MenuItem>
+	        <MenuItem value={20}>Skirt</MenuItem>
+	        <MenuItem value={30}>Dress</MenuItem>
+	      </Select>
+	    </FormControl>
+						<p>Required for inventory tracking and analytics</p>
 					</div>
 				</div>
 			</main>
