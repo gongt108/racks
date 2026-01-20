@@ -10,14 +10,57 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
-	const [purchasePrice, setPurchasePrice] = useState(0);
+	const [purchasePrice, setPurchasePrice] = useState<number | null>(null);
+	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
+	const [singleItem, setSingleItem] = useState({
+		photos: [] as File[],
+		type: '',
+		purchasePrice: null as number | null,
+		listingPrice: null as number | null,
+		source: '',
+		description: '',
+		tags: [],
+	});
 
 	const handleTypeSelection = (event) => {
 		setGarmentType(event.target.value);
 	};
+
+	const handlePurchasePriceChange = (event) => {
+		const value = event.target.value;
+		// Allow only numbers and decimal
+		if (/^\d*\.?\d*$/.test(value)) {
+			const numericValue = Number(Number(value).toFixed(2));
+			setPurchasePrice(numericValue);
+		}
+	};
+
+	const handleOptionalInfoChange = (field: string, value: string) => {
+		setSingleItem((prevState) => ({
+			...prevState,
+			[field]: value,
+		}));
+	};
+
+	const handleAddItem = () => {
+		const newItem = singleItem;
+		// Logic to add the item to inventory goes here
+		if (autoPricingChecked) {
+			const listingPrice = purchasePrice
+				? Number((purchasePrice * 2).toFixed(2))
+				: null;
+			newItem.listingPrice = listingPrice;
+		}
+		console.log('Item added:', {
+			newItem,
+		});
+	};
+
 	return (
 		<div className="min-h-screen">
 			<main className="container mx-auto px-4 py-8 flex flex-col space-y-8">
@@ -114,42 +157,42 @@ const Index = () => {
 								<input
 									type="text"
 									value={purchasePrice}
-									onChange={(e) => setPurchasePrice(e.target.value)}
-									placeholder="Search..."
-									className="w-full border border-gray-300 rounded-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+									onChange={handlePurchasePriceChange}
+									placeholder="0.00"
+									className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								/>
 							</div>
-							<div className="flex flex-col w-full">
-								<FormControl fullWidth>
-									{' '}
-									{/* Apply a Tailwind width utility */}
-									<InputLabel id="select-label">
-										Select Garment type...
-									</InputLabel>
-									<Select
-										labelId="select-label"
-										id="simple-select"
-										value={garmentType}
-										onChange={handleTypeSelection}
-										className="text-sm border-gray-300 rounded-lg shadow-sm" // Apply Tailwind styles
-									>
-										{garmentTypes.map((type) => {
-											const Icon = type.icon;
-											return (
-												<MenuItem
-													key={type.value}
-													value={type.value}
-													className="flex space-x-2"
-												>
-													<Icon />
-													<p>{type.label}</p>
-												</MenuItem>
-											);
-										})}
-									</Select>
-								</FormControl>
+							<div className="flex flex-col w-full space-y-1">
+								<p className="font-semibold">
+									Listing price ($){' '}
+									{autoPricingChecked ? (
+										''
+									) : (
+										<span className="text-red-500">*</span>
+									)}
+								</p>
+								<input
+									type="text"
+									value={purchasePrice}
+									onChange={handlePurchasePriceChange}
+									placeholder={autoPricingChecked ? 'Auto Calculated' : '0.00'}
+									className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								/>
+								<FormControlLabel
+									control={
+										<Switch
+											checked={autoPricingChecked}
+											onChange={(e) => setAutoPricingChecked(e.target.checked)}
+										/>
+									}
+									label={
+										autoPricingChecked
+											? 'Auto Pricing Enabled'
+											: 'Auto Pricing Disabled'
+									}
+								/>
 								<div className="flex flex-row space-x-2 items-center">
-									<BsFillInfoCircleFill className="text-blue-500" />
+									<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
 									<p className="text-sm">
 										Automatically calculated based on your settings (200%
 										markup)
@@ -158,7 +201,60 @@ const Index = () => {
 							</div>
 						</div>
 					</div>
+					<div className="rounded-lg bg-gray-20 border flex flex-col mx-4 my-6 p-4 space-y-2">
+						<div className="flex flex-row space-x-1 items-center">
+							<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
+							<h2 className="font-semibold text-lg">Item Details</h2>
+						</div>
+						<div className="w-full flex flex-col space-y-1 mb-2">
+							<p className="font-semibold">Source (optional)</p>
+							<input
+								type="text"
+								value={singleItem.source}
+								onChange={(e) =>
+									handleOptionalInfoChange('source', e.target.value)
+								}
+								placeholder="e.g. Thrift Store, Zara, etc."
+								className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							/>
+						</div>
+						<div className="w-full flex flex-col space-y-1 mb-4">
+							<p className="font-semibold">Description (optional)</p>
+							<input
+								type="text"
+								value={singleItem.description}
+								onChange={(e) =>
+									handleOptionalInfoChange('description', e.target.value)
+								}
+								placeholder="Brief description of the item"
+								className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							/>
+						</div>
+						<div className="w-full flex flex-col space-y-1 mb-4">
+							<p className="font-semibold">Custom Tags (optional)</p>
+							<input
+								type="text"
+								value={singleItem.tags}
+								onChange={(e) =>
+									handleOptionalInfoChange('tags', e.target.value)
+								}
+								placeholder="e.g. vintage, summer, etc."
+								className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							/>
+							<p className="text-sm font-light">
+								{' '}
+								Add custom tags to organize your items. Auto-tags will be
+								generated too!
+							</p>
+						</div>
+					</div>
 				</div>
+				<button
+					className="bg-pink-300 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full mx-auto mt-4"
+					onClick={handleAddItem}
+				>
+					Add Item
+				</button>
 			</main>
 		</div>
 	);
