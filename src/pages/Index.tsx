@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { garmentTypes } from '@/constants/garmentTypes';
 import UploadIcon from '@mui/icons-material/Upload';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import { FaShirt, FaBoxesStacked } from 'react-icons/fa6';
-import Box from '@mui/material/Box';
+import { FaShirt, FaDollarSign } from 'react-icons/fa6';
+import { BsFillInfoCircleFill } from 'react-icons/bs';
+
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -11,10 +13,11 @@ import Select from '@mui/material/Select';
 
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
+	const [purchasePrice, setPurchasePrice] = useState(0);
 
-  const handleTypeSelection = (event) => {
-    setGarmentType(event.target.value);
-  };
+	const handleTypeSelection = (event) => {
+		setGarmentType(event.target.value);
+	};
 	return (
 		<div className="min-h-screen">
 			<main className="container mx-auto px-4 py-8 flex flex-col space-y-8">
@@ -58,34 +61,102 @@ const Index = () => {
 						<CameraAltIcon className="text-pink-300" />
 						<p>Take photo</p>
 					</div>
-					<div className="rounded-lg bg-blue-200 border flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2">
-						<FaShirt className="text-purple-300" />
-						<h2 className="font-semibold text-lg">Item Classification</h2>
-						<p className="font-semibold">Garment type <span className="text-red-500">*</span></p>
-						<FormControl fullWidth className="w-64"> {/* Apply a Tailwind width utility */}
-	      <InputLabel id="select-label">Select Garment type...</InputLabel>
-	      <Select
-	        labelId="select-label"
-	        id="simple-select"
-	        value={garmentType}
-	        onChange={handleTypeSelection}
-	        className="text-sm border-gray-300 rounded-lg shadow-sm" // Apply Tailwind styles
-	      >
-	        <MenuItem value={shirt}>
-										<FaShirt />
-										<p>Shirt<p>
-									</MenuItem>
-									<MenuItem value={skirt}>
-										<FaShirt />
-										<p>Skirt<p>
-									</MenuItem>
-	        <MenuItem value={shorts}>
-										<FaShirt />
-										<p>Shorts<p>
-									</MenuItem>
-	      </Select>
-	    </FormControl>
-						<p>Required for inventory tracking and analytics</p>
+					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4 space-y-2">
+						<div className="flex flex-row space-x-1 items-center">
+							<FaShirt className="text-purple-300 w-4 h-4" />
+							<h2 className="font-semibold text-lg">Item Classification</h2>
+						</div>
+						<p className="font-semibold">
+							Garment type <span className="text-red-500">*</span>
+						</p>
+						<FormControl fullWidth className="w-64">
+							{' '}
+							{/* Apply a Tailwind width utility */}
+							<InputLabel id="select-label">Select Garment type...</InputLabel>
+							<Select
+								labelId="select-label"
+								id="simple-select"
+								value={garmentType}
+								onChange={handleTypeSelection}
+								className="text-sm border-gray-300 rounded-lg shadow-sm" // Apply Tailwind styles
+							>
+								{garmentTypes.map((type) => {
+									const Icon = type.icon;
+									return (
+										<MenuItem
+											key={type.value}
+											value={type.value}
+											className="flex space-x-2"
+										>
+											<Icon />
+											<p>{type.label}</p>
+										</MenuItem>
+									);
+								})}
+							</Select>
+						</FormControl>
+						<div className="flex flex-row space-x-2 items-center">
+							<BsFillInfoCircleFill className="text-purple-500" />
+							<p className="text-sm">
+								Required for inventory tracking and analytics
+							</p>
+						</div>
+					</div>
+					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4 space-y-2">
+						<div className="flex flex-row space-x-1 items-center">
+							<FaDollarSign className="text-blue-500 h-4 w-4" />
+							<h2 className="font-semibold text-lg">Pricing Information</h2>
+						</div>
+
+						<div className="flex flex-row space-x-2">
+							<div className="w-full flex flex-col space-y-1">
+								<p className="font-semibold">Purchase price ($)</p>
+								<input
+									type="text"
+									value={purchasePrice}
+									onChange={(e) => setPurchasePrice(e.target.value)}
+									placeholder="Search..."
+									className="w-full border border-gray-300 rounded-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								/>
+							</div>
+							<div className="flex flex-col w-full">
+								<FormControl fullWidth>
+									{' '}
+									{/* Apply a Tailwind width utility */}
+									<InputLabel id="select-label">
+										Select Garment type...
+									</InputLabel>
+									<Select
+										labelId="select-label"
+										id="simple-select"
+										value={garmentType}
+										onChange={handleTypeSelection}
+										className="text-sm border-gray-300 rounded-lg shadow-sm" // Apply Tailwind styles
+									>
+										{garmentTypes.map((type) => {
+											const Icon = type.icon;
+											return (
+												<MenuItem
+													key={type.value}
+													value={type.value}
+													className="flex space-x-2"
+												>
+													<Icon />
+													<p>{type.label}</p>
+												</MenuItem>
+											);
+										})}
+									</Select>
+								</FormControl>
+								<div className="flex flex-row space-x-2 items-center">
+									<BsFillInfoCircleFill className="text-blue-500" />
+									<p className="text-sm">
+										Automatically calculated based on your settings (200%
+										markup)
+									</p>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</main>
