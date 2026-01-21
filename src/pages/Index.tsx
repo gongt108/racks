@@ -1,5 +1,9 @@
 import { useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+
 import { garmentTypes } from '@/constants/garmentTypes';
+import { useAuth } from '@/hooks/useAuth';
+
 import UploadIcon from '@mui/icons-material/Upload';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
@@ -26,6 +30,8 @@ const Index = () => {
 		description: '',
 		customTags: [],
 	});
+
+	const { user } = useAuth();
 
 	const handleTypeSelection = (event) => {
 		setGarmentType(event.target.value);
@@ -239,9 +245,9 @@ const Index = () => {
 							<p className="font-semibold">Custom Tags (optional)</p>
 							<input
 								type="text"
-								value={singleItem.tags}
+								value={singleItem.customTags}
 								onChange={(e) =>
-									handleOptionalInfoChange('tags', e.target.value)
+									handleOptionalInfoChange('customTags', e.target.value)
 								}
 								placeholder="e.g. vintage, summer, etc."
 								className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
