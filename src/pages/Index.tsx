@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/supabaseClient';
 
 import { garmentTypes } from '@/constants/garmentTypes';
 import { useAuth } from '@/hooks/useAuth';
