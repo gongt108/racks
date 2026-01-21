@@ -10,7 +10,7 @@ export default function Login() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 to-rose-200">
+		<div className="w-full flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 to-rose-200">
 			<div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
 				<h1 className="text-3xl font-bold text-center text-rose-600 mb-2">
 					Welcome Back

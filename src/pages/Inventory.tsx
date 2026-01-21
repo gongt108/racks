@@ -5,8 +5,8 @@ const Inventory = () => {
 	const [query, setQuery] = useState('');
 
 	return (
-		<div className="flex flex-col items-center justify-center">
-			<div className="bg-white w-full items-center justify-center">
+		<div className="flex flex-col justify-center w-full relative">
+			<div className="bg-white w-full justify-center absolute top-0 ">
 				<div className="w-full max-w-[72rem] mx-auto flex flex-row justify-between py-2">
 					<div className="flex flex-row border rounded-lg">
 						<div className="flex flex-row">

@@ -1,5 +1,10 @@
 // src/components/Header.tsx
+import { useLocation, useNavigate } from 'react-router-dom';
+
 const Header = () => {
+	const navigate = useNavigate();
+	const { pathname } = useLocation();
+
 	return (
 		<header className="border-b border-border/50 bg-card/80 backdrop-blur-sm sticky top-0 z-20 bg-white">
 			<div className="mx-auto flex w-full max-w-[72rem] justify-between py-6 ">
@@ -18,7 +23,10 @@ const Header = () => {
 					<div>
 						<p>Contact</p>
 					</div>
-					<div>
+					<div
+						onClick={() => navigate('/login')}
+						className="hover:cursor-pointer hover:underline"
+					>
 						<p>Sign In</p>
 					</div>
 				</div>

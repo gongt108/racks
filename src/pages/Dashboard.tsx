@@ -74,7 +74,7 @@ const stages: Stage[] = [
 
 export default function Dashboard() {
 	return (
-		<div className="py-8 flex flex-col space-y-8">
+		<div className="py-8 flex flex-col space-y-8 w-full">
 			<div className="rounded-xl border border-pink-200 bg-white shadow-lg max-w-[72rem] w-full p-6 mx-auto">
 				{/* Header */}
 				<Stack direction="row" alignItems="center" spacing={2} mb={3}>
