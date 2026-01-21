@@ -19,12 +19,12 @@ const Index = () => {
 	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
 	const [singleItem, setSingleItem] = useState({
 		photos: [] as File[],
-		type: '',
+		category: '',
 		purchasePrice: null as number | null,
 		listingPrice: null as number | null,
 		source: '',
 		description: '',
-		tags: [],
+		customTags: [],
 	});
 
 	const handleTypeSelection = (event) => {
@@ -48,7 +48,14 @@ const Index = () => {
 	};
 
 	const handleAddItem = () => {
-		const newItem = singleItem;
+		const newItem = {
+			...singleItem,
+			status: 'available',
+			user: null as string | null,
+			category: garmentType,
+			purchasePrice: purchasePrice,
+			listingPrice: autoPricingChecked ? null : singleItem.listingPrice,
+		};
 		// Logic to add the item to inventory goes here
 		if (autoPricingChecked) {
 			const listingPrice = purchasePrice
@@ -56,9 +63,7 @@ const Index = () => {
 				: null;
 			newItem.listingPrice = listingPrice;
 		}
-		console.log('Item added:', {
-			newItem,
-		});
+		console.log('Item added:', newItem);
 	};
 
 	return (
