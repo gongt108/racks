@@ -1,7 +1,8 @@
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider } from '@/context/AuthContext';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import Index from './pages/Index';
+import Login from './pages/Login';
 import Inventory from './pages/Inventory';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
@@ -16,12 +17,13 @@ function App() {
 							<Route path="/" element={<Index />} />
 							{/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
 							<Route path="/inventory" element={<Inventory />} />
+							<Route path="/login" element={<Login />} />
 							<Route path="/dashboard" element={<Dashboard />} />
 							<Route path="*" element={<NotFound />} />
 						</Route>
 					</Routes>
 				</BrowserRouter>
-   </AuthProvider>
+			</AuthProvider>
 		</>
 	);
 }
