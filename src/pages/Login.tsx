@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 export default function Login() {
+	const [isNewUser, setIsNewUser] = useState(false);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 
@@ -50,6 +51,23 @@ export default function Login() {
 						/>
 					</div>
 
+					{isNewUser &&
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Confirm Password
+								</label>
+								<input
+									type="password"
+									value={passwordConfirm}
+									onChange={(e) => setPassword(e.target.value)}
+									placeholder="Please confirm password"
+									className="w-full rounded-lg border border-gray-300 px-4 py-2
+		                focus:outline-none focus:ring-2 focus:ring-pink-400"
+									required
+								/>
+							</div>
+					}
+
 					<button
 						type="submit"
 						className="w-full bg-pink-500 hover:bg-pink-600 text-white
@@ -59,12 +77,31 @@ export default function Login() {
 					</button>
 				</form>
 
-				<p className="text-center text-sm text-gray-500 mt-6">
-					Don’t have an account?{' '}
-					<span className="text-pink-500 font-semibold cursor-pointer hover:underline">
-						Sign up
-					</span>
-				</p>
+	<p className="text-center text-sm text-gray-500 mt-6">
+      {isNewUser ? (
+        <>
+          Have an account?{' '}
+          <button
+            type="button"
+            onClick={() => setIsNewUser(false)}
+            className="text-pink-500 font-semibold hover:underline"
+          >
+            Log in
+          </button>
+        </>
+      ) : (
+        <>
+          Don’t have an account?{' '}
+          <button
+            type="button"
+            onClick={() => setIsNewUser(true)}
+            className="text-pink-500 font-semibold hover:underline"
+          >
+            Sign up
+          </button>
+        </>
+      )}
+    </p>
 			</div>
 		</div>
 	);
