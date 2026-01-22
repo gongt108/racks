@@ -4,6 +4,11 @@ export default function Login() {
 	const [isNewUser, setIsNewUser] = useState(false);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+ const [newUser, setNewUser] = useState({
+		username: '',
+  password: '',
+		passwordConfirm: '',
+ )}
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
