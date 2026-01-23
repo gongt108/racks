@@ -85,7 +85,7 @@ useEffect(() => {
 				</div>
 
 				{/* Nav */}
-				<nav className="flex items-center gap-6 text-sm font-medium text-pink-100">
+				<nav className="flex flex-row items-center w-full max-w-[72-rem] justify-between text-sm font-medium text-pink-100">
 					{headerLinks.map(({ id, label, path, Icon }) => {
 						const isActive = activePage === id;
 						return (
