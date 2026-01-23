@@ -1,12 +1,35 @@
 // src/components/Header.tsx
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaSignInAlt } from 'react-icons/fa';
+import { BsFillInfoCircleFill } from 'react-icons/bs';
+import { MdEmail } from 'react-icons/md';
 
 const Header = () => {
 	const navigate = useNavigate();
 	const { pathname } = useLocation();
 
 	const activePage = pathname.split('/')[1] || null;
+
+	const headerLinks = [
+		{
+			id: 'about',
+			label: 'About Us',
+			path: '/about',
+			Icon: BsFillInfoCircleFill,
+		},
+		{
+			id: 'contact',
+			label: 'Contact',
+			path: '/contact',
+			Icon: MdEmail,
+		},
+		{
+			id: 'login',
+			label: 'Sign In',
+			path: '/login',
+			Icon: FaSignInAlt,
+		},
+	];
 
 	return (
 		<header
@@ -29,41 +52,29 @@ const Header = () => {
 
 				{/* Nav */}
 				<nav className="flex items-center gap-6 text-sm font-medium text-pink-100">
-					<div
-						className="
-							flex items-center gap-2 px-4 py-2
-							 font-white font-semibold
-							transition-transform duration-150
-							hover:-translate-y-1 rounded-full hover:bg-white/30 hover:font-bold hover:text-violet-400
-							"
-					>
-						About Us
-					</div>
-					<div
-						onClick={() => navigate('/login')}
-						className="
-							flex items-center gap-2 px-4 py-2
-							bg-white/20 font-white font-semibold
-							shadow-sm
-							transition-transform duration-150
-							hover:-translate-y-1 rounded-full hover:bg-white/30 hover:font-bold hover:text-violet-400
-							"
-					>
-						Contact
-					</div>
-					<div
-						onClick={() => navigate('/login')}
-						className="
-							flex items-center gap-2 px-4 py-2
-							bg-white/20 font-white font-semibold
-							shadow-sm
-							transition-transform duration-150
-							hover:-translate-y-1 rounded-full hover:bg-white/30 hover:font-bold hover:text-violet-400
-							"
-					>
-						<FaSignInAlt className="w-4 h-4" />
-						Sign In
-					</div>
+					{headerLinks.map(({ id, label, path, Icon }) => {
+						const isActive = activePage === id;
+						return (
+							<div
+								key={id}
+								onClick={() => navigate(path)}
+								className={`flex flex-row items-center justify-center gap-2 px-4 py-2 font-semibold  transition-transform duration-150 hover:-translate-y-1 rounded-full hover:bg-white/30 hover:font-bold
+							  	${isActive ? 'text-violet-400 shadow-sm bg-white/20 rounded-full font-bold' : 'text-white'}`}
+							>
+								<Icon
+									fontSize="medium"
+									className={isActive ? 'text-violet-400' : 'text-white'}
+								/>
+								<p
+									className={`text-sm ${
+										isActive ? 'text-violet-400' : 'text-white'
+									}`}
+								>
+									{label}
+								</p>
+							</div>
+						);
+					})}
 				</nav>
 			</div>
 		</header>
