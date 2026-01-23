@@ -138,8 +138,8 @@ export default function Login() {
 		} else {
 			// LOGIN
 			const { error } = await supabase.auth.signInWithPassword({
-				email: createdUser.email,
-				password: createdUser.password,
+				email: email,
+				password: password,
 			});
 
 			if (error) {
