@@ -106,41 +106,60 @@ export default function Login() {
 	};
 
 	const loginOrSignUp = async (createdUser: {
-		email: string;
-		password: string;
-		passwordConfirm: string;
-		firstName: string | null;
-		lastName: string | null;
-	}) => {
-		if (isNewUser) {
-			// Sign up logic here
-			console.log(createdUser);
-			setLoading(true);
+	email: string;
+	password: string;
+	passwordConfirm: string;
+	firstName: string | null;
+	lastName: string | null;
+}) => {
+	setLoading(true);
 
-			const { data, error } = await supabase.auth.signUp({
+	try {
+		if (isNewUser) {
+			// SIGN UP
+			const { error } = await supabase.auth.signUp({
 				email: createdUser.email,
 				password: createdUser.password,
 				options: {
 					data: {
-						firstName: createdUser.firstName ?? null,
-						lastName: createdUser.lastName ?? null,
+						firstName: createdUser.firstName,
+						lastName: createdUser.lastName,
 					},
 				},
 			});
 
 			if (error) {
 				toast.error(error.message);
-			} else {
-				navigate('/');
-				toast.success('You are logged in successfully!');
+				return;
 			}
 
-			setLoading(false);
+			toast.success('Account created successfully!');
+			navigate('/');
 		} else {
-			// Login logic here
-			console.log(email);
+			// LOGIN
+			const { error } = await supabase.auth.signInWithPassword({
+				email: createdUser.email,
+				password: createdUser.password,
+			});
+
+			if (error) {
+				toast.error(error.message);
+				return;
+			}
+
+			toast.success('You are logged in successfully!');
+			navigate('/');
 		}
-	};
+	} catch (err) {
+		console.error(err);
+		toast.error('Something went wrong. Please try again.');
+	} finally {
+		setLoading(false);
+	}
+};
+
+			
+	
 
 	return (
 		<div className="w-full flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 to-rose-200">
