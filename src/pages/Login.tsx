@@ -1,5 +1,8 @@
 import { useRef, useState } from 'react';
 import { FaCircleExclamation } from 'react-icons/fa6';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/supabaseClient';
+import { toast } from 'react-toastify';
 
 interface NewUser {
 	email: string;
@@ -34,6 +37,8 @@ export default function Login() {
 		firstName: null,
 		lastName: null,
 	});
+	const [loading, setLoading] = useState(false);
+	const navigate = useNavigate();
 
 	const fieldRefs = useRef<Record<FieldName, HTMLDivElement | null>>({
 		email: null,
@@ -58,8 +63,6 @@ export default function Login() {
 		e.preventDefault();
 
 		// EMAIL
-		// const emailToValidate = isNewUser ? newUser.email : email;
-
 		if (!email.trim()) {
 			setFieldError({
 				field: 'email',
@@ -70,8 +73,6 @@ export default function Login() {
 		}
 
 		// PASSWORD
-		// const pwd = isNewUser ? newUser.password : password;
-
 		if (!password.trim()) {
 			setFieldError({
 				field: 'password',
@@ -104,7 +105,7 @@ export default function Login() {
 		});
 	};
 
-	const loginOrSignUp = (createdUser: {
+	const loginOrSignUp = async (createdUser: {
 		email: string;
 		password: string;
 		passwordConfirm: string;
@@ -114,6 +115,27 @@ export default function Login() {
 		if (isNewUser) {
 			// Sign up logic here
 			console.log(createdUser);
+			setLoading(true);
+
+			const { data, error } = await supabase.auth.signUp({
+				email: createdUser.email,
+				password: createdUser.password,
+				options: {
+					data: {
+						firstName: createdUser.firstName ?? null,
+						lastName: createdUser.lastName ?? null,
+					},
+				},
+			});
+
+			if (error) {
+				toast.error(error.message);
+			} else {
+				navigate('/');
+				toast.success('You are logged in successfully!');
+			}
+
+			setLoading(false);
 		} else {
 			// Login logic here
 			console.log(email);

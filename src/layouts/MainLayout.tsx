@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 
-const HIDE_PREVIEW_ROUTES = ['/login'];
+const HIDE_PREVIEW_ROUTES = ['/login', '/about', '/contact'];
 
 const MainLayout = () => {
 	const { user } = useAuth();
