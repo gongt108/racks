@@ -8,7 +8,9 @@ import Index from './pages/Index';
 import Login from './pages/Login';
 import Inventory from './pages/Inventory';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
+
 
 function App() {
 	return (
@@ -28,6 +30,7 @@ function App() {
 							<Route path="/" element={<Index />} />
 							<Route path="/inventory" element={<Inventory />} />
 							<Route path="/dashboard" element={<Dashboard />} />
+							<Route path="/profile" element={<Profile />} />
 							<Route path="*" element={<NotFound />} />
 						</Route>
 						<Route element={<AuthLayout />}>
