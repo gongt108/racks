@@ -54,13 +54,13 @@ export default function Login() {
 		}));
 	};
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const validateUserInput = (e: React.FormEvent) => {
 		e.preventDefault();
 
 		// EMAIL
-		const emailToValidate = isNewUser ? newUser.email : email;
+		// const emailToValidate = isNewUser ? newUser.email : email;
 
-		if (!emailToValidate.trim()) {
+		if (!email.trim()) {
 			setFieldError({
 				field: 'email',
 				message: 'Email is required',
@@ -70,9 +70,9 @@ export default function Login() {
 		}
 
 		// PASSWORD
-		const pwd = isNewUser ? newUser.password : password;
+		// const pwd = isNewUser ? newUser.password : password;
 
-		if (!pwd.trim()) {
+		if (!password.trim()) {
 			setFieldError({
 				field: 'password',
 				message: 'Password is required',
@@ -82,7 +82,7 @@ export default function Login() {
 		}
 
 		// CONFIRM PASSWORD
-		if (isNewUser && pwd.trim() && pwd !== newUser.passwordConfirm) {
+		if (isNewUser && password.trim() && password !== newUser.passwordConfirm) {
 			setFieldError({
 				field: 'passwordConfirm',
 				message: 'Passwords do not match',
@@ -92,7 +92,9 @@ export default function Login() {
 		}
 
 		setFieldError({ field: null, message: '' });
-		console.log('Form valid ✔');
+
+		const createdUser = { ...newUser, email, password };
+		loginOrSignUp(createdUser);
 	};
 
 	const scrollToField = (field: FieldName) => {
@@ -100,6 +102,22 @@ export default function Login() {
 			behavior: 'smooth',
 			block: 'center',
 		});
+	};
+
+	const loginOrSignUp = (createdUser: {
+		email: string;
+		password: string;
+		passwordConfirm: string;
+		firstName: string | null;
+		lastName: string | null;
+	}) => {
+		if (isNewUser) {
+			// Sign up logic here
+			console.log(createdUser);
+		} else {
+			// Login logic here
+			console.log(email);
+		}
 	};
 
 	return (
@@ -112,7 +130,7 @@ export default function Login() {
 					Sign in to your account
 				</p>
 
-				<form onSubmit={handleSubmit} className="space-y-5">
+				<form onSubmit={validateUserInput} className="space-y-5">
 					<div ref={(el) => (fieldRefs.current.email = el)}>
 						<label className="block text-sm font-medium text-gray-700 mb-1">
 							Email Address
@@ -120,12 +138,8 @@ export default function Login() {
 						<input
 							type="email"
 							name="email"
-							value={isNewUser ? newUser.email : email}
-							onChange={(e) => {
-								isNewUser
-									? setNewUser({ ...newUser, email: e.target.value })
-									: setEmail(e.target.value);
-							}}
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
 							placeholder="you@example.com"
 							className="w-full rounded-lg border border-gray-300 px-4 py-2
                 focus:outline-none focus:ring-2 focus:ring-pink-400"
@@ -142,10 +156,8 @@ export default function Login() {
 						<input
 							type="password"
 							name="password"
-							value={isNewUser ? newUser.password : password}
-							onChange={(e) =>
-								isNewUser ? handleNewUserInput(e) : setPassword(e.target.value)
-							}
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
 							placeholder="••••••••"
 							className="w-full rounded-lg border border-gray-300 px-4 py-2
                 focus:outline-none focus:ring-2 focus:ring-pink-400"
