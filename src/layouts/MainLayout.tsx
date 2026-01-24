@@ -1,5 +1,6 @@
 // src/layouts/MainLayout.tsx
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,12 +8,12 @@ import { useAuth } from '@/hooks/useAuth';
 const HIDE_PREVIEW_ROUTES = ['/login', '/about', '/contact'];
 
 const MainLayout = () => {
-	const { user } = useAuth();
+	const { user, isLoading } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
 
 	const shouldShowPreview =
-		!user && !HIDE_PREVIEW_ROUTES.includes(location.pathname);
+		!isLoading && !user && !HIDE_PREVIEW_ROUTES.includes(location.pathname);
 
 	return (
 		<div className="min-h-screen flex flex-col relative">

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { FaCircleExclamation } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/supabaseClient';
@@ -39,6 +39,18 @@ export default function Login() {
 	});
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		const loadUser = async () => {
+			const { data, error } = await supabase.auth.getUser();
+			if (data.user) {
+				navigate('/');
+			}
+			setLoading(false);
+		};
+
+		loadUser();
+	}, [navigate]);
 
 	const fieldRefs = useRef<Record<FieldName, HTMLDivElement | null>>({
 		email: null,
@@ -106,60 +118,57 @@ export default function Login() {
 	};
 
 	const loginOrSignUp = async (createdUser: {
-	email: string;
-	password: string;
-	passwordConfirm: string;
-	firstName: string | null;
-	lastName: string | null;
-}) => {
-	setLoading(true);
+		email: string;
+		password: string;
+		passwordConfirm: string;
+		firstName: string | null;
+		lastName: string | null;
+	}) => {
+		setLoading(true);
 
-	try {
-		if (isNewUser) {
-			// SIGN UP
-			const { error } = await supabase.auth.signUp({
-				email: createdUser.email,
-				password: createdUser.password,
-				options: {
-					data: {
-						firstName: createdUser.firstName,
-						lastName: createdUser.lastName,
+		try {
+			if (isNewUser) {
+				// SIGN UP
+				const { error } = await supabase.auth.signUp({
+					email: createdUser.email,
+					password: createdUser.password,
+					options: {
+						data: {
+							firstName: createdUser.firstName,
+							lastName: createdUser.lastName,
+						},
 					},
-				},
-			});
+				});
 
-			if (error) {
-				toast.error(error.message);
-				return;
+				if (error) {
+					toast.error(error.message);
+					return;
+				}
+
+				toast.success('Account created successfully!');
+				navigate('/');
+			} else {
+				// LOGIN
+				const { error } = await supabase.auth.signInWithPassword({
+					email: email,
+					password: password,
+				});
+
+				if (error) {
+					toast.error(error.message);
+					return;
+				}
+
+				toast.success('You are logged in successfully!');
+				navigate('/');
 			}
-
-			toast.success('Account created successfully!');
-			navigate('/');
-		} else {
-			// LOGIN
-			const { error } = await supabase.auth.signInWithPassword({
-				email: email,
-				password: password,
-			});
-
-			if (error) {
-				toast.error(error.message);
-				return;
-			}
-
-			toast.success('You are logged in successfully!');
-			navigate('/');
+		} catch (err) {
+			console.error(err);
+			toast.error('Something went wrong. Please try again.');
+		} finally {
+			setLoading(false);
 		}
-	} catch (err) {
-		console.error(err);
-		toast.error('Something went wrong. Please try again.');
-	} finally {
-		setLoading(false);
-	}
-};
-
-			
-	
+	};
 
 	return (
 		<div className="w-full flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 to-rose-200">
