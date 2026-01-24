@@ -112,12 +112,12 @@ const Header = () => {
 							<button
 								onClick={() => setOpen(!open)}
 								className="
-				h-10 w-10 rounded-full
-				bg-white text-violet-600
-				font-bold text-lg
-				flex items-center justify-center
-				shadow-md hover:scale-105 transition
-			"
+								h-10 w-10 rounded-full
+								bg-white text-violet-600
+								font-bold text-lg
+								flex items-center justify-center
+								shadow-md hover:scale-105 transition
+							"
 							>
 								{initial}
 							</button>
@@ -156,9 +156,9 @@ const Header = () => {
 					) : (
 						<div
 							onClick={() => navigate('/login')}
-							className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white font-semibold cursor-pointer hover:bg-white/30"
+							className={`flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 ${activePage === 'login' ? 'text-violet-400' : 'text-white'} font-semibold cursor-pointer hover:bg-white/30`}
 						>
-							<FaSignInAlt />
+							<FaSignInAlt className="h-4 w-4" />
 							Sign In
 						</div>
 					)}
