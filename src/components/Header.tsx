@@ -12,41 +12,38 @@ const Header = () => {
 	const [user, setUser] = useState<any>(null);
 	const [open, setOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
-	
+
 	useEffect(() => {
 		supabase.auth.getUser().then(({ data }) => {
 			setUser(data.user);
 		});
-	
+
 		const { data: listener } = supabase.auth.onAuthStateChange(
 			(_event, session) => {
 				setUser(session?.user ?? null);
-			}
+			},
 		);
-	
+
 		return () => listener.subscription.unsubscribe();
 	}, []);
 
-useEffect(() => {
-	const handleClickOutside = (e: MouseEvent) => {
-		if (
-			dropdownRef.current &&
-			!dropdownRef.current.contains(e.target as Node)
-		) {
-			setOpen(false);
-		}
-	};
+	useEffect(() => {
+		const handleClickOutside = (e: MouseEvent) => {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(e.target as Node)
+			) {
+				setOpen(false);
+			}
+		};
 
-	document.addEventListener('mousedown', handleClickOutside);
-	return () =>
-		document.removeEventListener('mousedown', handleClickOutside);
-}, []);
-
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, []);
 
 	const initial =
 		user?.user_metadata?.firstName?.[0]?.toUpperCase() ??
 		user?.email?.[0]?.toUpperCase();
-
 
 	const activePage = pathname.split('/')[1] || null;
 
@@ -85,7 +82,7 @@ useEffect(() => {
 				</div>
 
 				{/* Nav */}
-				<nav className="flex flex-row items-center w-1/2 max-w-[72-rem] justify-between text-sm font-medium text-pink-100">
+				<nav className="flex flex-row items-center w-1/2 max-w-[24rem] justify-between text-sm font-medium text-pink-100">
 					{headerLinks.map(({ id, label, path, Icon }) => {
 						const isActive = activePage === id;
 						return (
@@ -110,60 +107,61 @@ useEffect(() => {
 						);
 					})}
 					{/* AUTH BUTTON */}
-{user ? (
-	<div className="relative" ref={dropdownRef}>
-		<button
-			onClick={() => setOpen(!open)}
-			className="
+					{user ? (
+						<div className="relative" ref={dropdownRef}>
+							<button
+								onClick={() => setOpen(!open)}
+								className="
 				h-10 w-10 rounded-full
 				bg-white text-violet-600
 				font-bold text-lg
 				flex items-center justify-center
 				shadow-md hover:scale-105 transition
 			"
-		>
-			{initial}
-		</button>
+							>
+								{initial}
+							</button>
 
-		{open && (
-			<div className="
+							{open && (
+								<div
+									className="
 				absolute right-0 mt-3 w-40
 				rounded-xl bg-white shadow-lg
 				overflow-hidden text-sm
-			">
-				<button
-					onClick={() => {
-						navigate('/profile');
-						setOpen(false);
-					}}
-					className="block w-full px-4 py-3 text-left hover:bg-gray-100"
-				>
-					Profile
-				</button>
+			"
+								>
+									<button
+										onClick={() => {
+											navigate('/profile');
+											setOpen(false);
+										}}
+										className="block w-full px-4 py-3 text-left hover:bg-gray-100"
+									>
+										Profile
+									</button>
 
-				<button
-					onClick={async () => {
-						await supabase.auth.signOut();
-						setOpen(false);
-						navigate('/login');
-					}}
-					className="block w-full px-4 py-3 text-left text-red-500 hover:bg-gray-100"
-				>
-					Log out
-				</button>
-			</div>
-		)}
-	</div>
-) : (
-	<div
-		onClick={() => navigate('/login')}
-		className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white font-semibold cursor-pointer hover:bg-white/30"
-	>
-		<FaSignInAlt />
-		Sign In
-	</div>
-)}
-
+									<button
+										onClick={async () => {
+											await supabase.auth.signOut();
+											setOpen(false);
+											navigate('/login');
+										}}
+										className="block w-full px-4 py-3 text-left text-red-500 hover:bg-gray-100"
+									>
+										Log out
+									</button>
+								</div>
+							)}
+						</div>
+					) : (
+						<div
+							onClick={() => navigate('/login')}
+							className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white font-semibold cursor-pointer hover:bg-white/30"
+						>
+							<FaSignInAlt />
+							Sign In
+						</div>
+					)}
 				</nav>
 			</div>
 		</header>
