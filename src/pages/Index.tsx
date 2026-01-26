@@ -37,6 +37,7 @@ const Index = () => {
 		description: '',
 		customTags: [],
 	});
+	const [isAnalyzing, setIsAnalyzing] = useState(false);
 
 	const { user } = useAuth();
 	const bulkRef = useRef<HTMLInputElement | null>(null);
@@ -138,7 +139,7 @@ const Index = () => {
 
 	return (
 		<div className="flex flex-1 w-full">
-			<main className="container mx-auto px-4 py-8 flex flex-col space-y-8">
+			<main className="container relative mx-auto px-4 py-8 flex flex-col space-y-8">
 				{/* BULK UPLOAD */}
 				<div
 					onClick={handleBulkClick}
@@ -403,6 +404,16 @@ const Index = () => {
 				>
 					Add Item
 				</button>
+			{!isAnalyzing && (
+    <div className="w-full absolute z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center animate-pulse">
+        <div className="mr-3">
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+        </div>
+        <p className="text-blue-700 font-medium text-sm">
+            Gemini AI is scanning your photo for details...
+        </p>
+    </div>
+			)}
 			</main>
 		</div>
 	);
