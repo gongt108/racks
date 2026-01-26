@@ -316,8 +316,18 @@ const Index = () => {
 								</p>
 								<input
 									type="text"
-									value={purchasePrice}
-									onChange={handlePurchasePriceChange}
+									value={
+										autoPricingChecked
+											? 'Auto Calculated'
+											: singleItem.listingPrice
+									}
+									onChange={(e) =>
+										setSingleItem({
+											...singleItem,
+											listingPrice: Number(e.target.value),
+										})
+									}
+									disabled={autoPricingChecked}
 									placeholder={autoPricingChecked ? 'Auto Calculated' : '0.00'}
 									className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								/>
