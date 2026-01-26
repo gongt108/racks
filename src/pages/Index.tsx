@@ -34,6 +34,7 @@ const Index = () => {
 	const { user } = useAuth();
 	const bulkRef = useRef<HTMLInputElement | null>(null);
 	const singleRef = useRef<HTMLInputElement | null>(null);
+	const cameraRef = useRef<HTMLInputElement | null>(null);
 
 	const handleBulkClick = () => {
 		bulkRef.current?.click();
@@ -42,6 +43,11 @@ const Index = () => {
 	const handleSingleClick = () => {
 		singleRef.current?.click();
 	};
+
+const handleCameraClick = () => {
+  cameraRef.current?.click();
+};
+
 
 	const handleBulkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
@@ -165,10 +171,27 @@ const Index = () => {
 					>
 						<UploadIcon className="text-pink-300" />
 						<p>Upload from device</p>
+{/* HIDDEN INPUTS */}
+					<input
+						type="file"
+						ref={singleRef}
+						className="hidden"
+						accept="image/*"
+						multiple
+						onChange={handleSingleChange}
+					/>
 					</div>
 					<div className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition">
 						<CameraAltIcon className="text-pink-300" />
 						<p>Take photo</p>
+					<input
+				  type="file"
+						ref={cameraRef}
+						className="hidden"
+				  accept="image/*"
+				  capture="environment"
+						onChange={handleSingleChange}
+				/>
 					</div>
 					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4 space-y-2">
 						<div className="flex flex-row space-x-1 items-center">
