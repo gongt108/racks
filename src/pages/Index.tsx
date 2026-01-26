@@ -18,10 +18,14 @@ import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-type PhotoItem = {
-	file: File;
-	preview: string;
-};
+import {
+  triggerFileInput,
+  handleBulkUpload,
+  handleSingleUpload,
+  removeImage,
+  PhotoItem,
+} from '@/utils/fileUploads';
+
 
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
@@ -50,53 +54,10 @@ const Index = () => {
 		};
 	}, [photos]);
 
-	const handleBulkClick = () => {
-		bulkRef.current?.click();
-	};
+	const handleBulkClick = () => triggerFileInput(bulkRef);
+const handleSingleClick = () => triggerFileInput(singleRef);
+const handleCameraClick = () => triggerFileInput(cameraRef);
 
-	const handleSingleClick = () => {
-		singleRef.current?.click();
-	};
-
-	const handleCameraClick = () => {
-		cameraRef.current?.click();
-	};
-
-	const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const files = e.target.files;
-		if (!files) return;
-
-		const fileArray = Array.from(files);
-		console.log('Bulk upload:', fileArray);
-
-		e.target.value = '';
-	};
-
-	const handleSingleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = Array.from(e.target.files || []);
-
-		if (files.length > 5) {
-			alert('You can upload up to 5 photos only');
-			e.target.value = '';
-			return;
-		}
-
-		const newPhotos = files.map((file) => ({
-			file,
-			preview: URL.createObjectURL(file),
-		}));
-
-		setPhotos((prev) => [...prev, ...newPhotos]);
-
-		e.target.value = '';
-	};
-
-	const removeImage = (index: number) => {
-		setPhotos((prev) => {
-			URL.revokeObjectURL(prev[index].preview);
-			return prev.filter((_, i) => i !== index);
-		});
-	};
 
 	const handleTypeSelection = (event) => {
 		setGarmentType(event.target.value);
@@ -196,13 +157,14 @@ const Index = () => {
 							<p>Upload from device</p>
 							{/* HIDDEN INPUTS */}
 							<input
-								type="file"
-								ref={singleRef}
-								className="hidden"
-								accept="image/*"
-								multiple
-								onChange={handleSingleUpload}
-							/>
+  type="file"
+  ref={singleRef}
+  className="hidden"
+  accept="image/*"
+  multiple
+  onChange={(e) => handleSingleUpload(e, setPhotos)}
+/>
+
 						</div>
 						<div
 							onClick={handleCameraClick}
@@ -211,12 +173,12 @@ const Index = () => {
 							<CameraAltIcon className="text-pink-300" />
 							<p>Take photo</p>
 							<input
-								type="file"
-								ref={cameraRef}
-								className="hidden"
-								accept="image/*"
-								capture="environment"
-								onChange={handleSingleUpload}
+  type="file"
+  ref={cameraRef}
+  className="hidden"
+  accept="image/*"
+  capture="environment"
+  onChange={(e) => handleSingleUpload(e, setPhotos)}
 							/>
 						</div>
 					</div>
@@ -232,12 +194,13 @@ const Index = () => {
 										className="w-full h-24 object-cover rounded-lg"
 									/>
 									<button
-										type="button"
-										onClick={() => removeImage(index)}
-										className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-									>
-										<IoIosClose className="w-3 h-3" />
-									</button>
+  type="button"
+  onClick={() => removeImage(index, photos, setPhotos)}
+  className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full"
+>
+  <IoIosClose className="w-3 h-3" />
+</button>
+
 								</div>
 							))}
 						</div>
