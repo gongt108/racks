@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
 
 import { garmentTypes } from '@/constants/garmentTypes';
@@ -9,6 +9,7 @@ import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { FaShirt, FaDollarSign } from 'react-icons/fa6';
 import { BsFillInfoCircleFill } from 'react-icons/bs';
+import { IoIosClose } from 'react-icons/io';
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -17,20 +18,16 @@ import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-
 type PhotoItem = {
-  file: File;
-  preview: string;
+	file: File;
+	preview: string;
 };
-
-
-
 
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
 	const [purchasePrice, setPurchasePrice] = useState<number | null>(null);
 	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
-const [photos, setPhotos] = useState<PhotoItem[]>([]);
+	const [photos, setPhotos] = useState<PhotoItem[]>([]);
 	const [singleItem, setSingleItem] = useState({
 		photos: [] as File[],
 		category: '',
@@ -46,12 +43,11 @@ const [photos, setPhotos] = useState<PhotoItem[]>([]);
 	const singleRef = useRef<HTMLInputElement | null>(null);
 	const cameraRef = useRef<HTMLInputElement | null>(null);
 
-useEffect(() => {
-  return () => {
-    photos.forEach((img) => URL.revokeObjectURL(img.preview));
-  };
-}, [photos]);
-
+	useEffect(() => {
+		return () => {
+			photos.forEach((img) => URL.revokeObjectURL(img.preview));
+		};
+	}, [photos]);
 
 	const handleBulkClick = () => {
 		bulkRef.current?.click();
@@ -61,12 +57,11 @@ useEffect(() => {
 		singleRef.current?.click();
 	};
 
-const handleCameraClick = () => {
-  cameraRef.current?.click();
-};
+	const handleCameraClick = () => {
+		cameraRef.current?.click();
+	};
 
-
-	const handleBulkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
 		if (!files) return;
 
@@ -76,7 +71,7 @@ const handleCameraClick = () => {
 		e.target.value = '';
 	};
 
-	const handleSingleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleSingleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
 		if (!files) return;
 
@@ -89,23 +84,23 @@ const handleCameraClick = () => {
 		}
 
 		const newImages = fileArray.map((file) => ({
-  file,
-  preview: URL.createObjectURL(file),
-}));
+			file,
+			preview: URL.createObjectURL(file),
+		}));
 
+		setPhotos((prev) => [...prev, ...newImages].slice(0, 5));
 
 		console.log('Single upload (max 5):', fileArray);
 
 		e.target.value = '';
 	};
 
-const removeImage = (index: number) => {
-  setImages((prev) => {
-    URL.revokeObjectURL(prev[index].preview);
-    return prev.filter((_, i) => i !== index);
-  });
-};
-
+	const removeImage = (index: number) => {
+		setPhotos((prev) => {
+			URL.revokeObjectURL(prev[index].preview);
+			return prev.filter((_, i) => i !== index);
+		});
+	};
 
 	const handleTypeSelection = (event) => {
 		setGarmentType(event.target.value);
@@ -180,7 +175,7 @@ const removeImage = (index: number) => {
 						className="hidden"
 						accept="image/*"
 						multiple
-						onChange={handleBulkChange}
+						onChange={handleBulkUpload}
 					/>
 				</div>
 
@@ -196,34 +191,61 @@ const removeImage = (index: number) => {
 						</div>
 					</div>
 					<p className="font-semibold mt-6 mx-4">Item Photos (up to 5)</p>
-					<div
-						onClick={handleSingleClick}
-						className="rounded-lg bg-gray-100 border-pink-200 border-2 border-dashed flex flex-col items-center text-center mx-4 mt-2 mb-6 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition"
-					>
-						<UploadIcon className="text-pink-300" />
-						<p>Upload from device</p>
-{/* HIDDEN INPUTS */}
-					<input
-						type="file"
-						ref={singleRef}
-						className="hidden"
-						accept="image/*"
-						multiple
-						onChange={handleSingleChange}
-					/>
+					<div className="flex flex-col md:flex-row w-full mt-2">
+						<div
+							onClick={handleSingleClick}
+							className="w-full md:w-1/2 rounded-lg bg-gray-100 border-pink-200 border-2 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition"
+						>
+							<UploadIcon className="text-pink-300" />
+							<p>Upload from device</p>
+							{/* HIDDEN INPUTS */}
+							<input
+								type="file"
+								ref={singleRef}
+								className="hidden"
+								accept="image/*"
+								multiple
+								onChange={handleSingleUpload}
+							/>
+						</div>
+						<div
+							onClick={handleCameraClick}
+							className="w-full md:w-1/2 rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition"
+						>
+							<CameraAltIcon className="text-pink-300" />
+							<p>Take photo</p>
+							<input
+								type="file"
+								ref={cameraRef}
+								className="hidden"
+								accept="image/*"
+								capture="environment"
+								onChange={handleSingleUpload}
+							/>
+						</div>
 					</div>
-					<div onClick={handleCameraClick} className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition">
-						<CameraAltIcon className="text-pink-300" />
-						<p>Take photo</p>
-					<input
-				  type="file"
-						ref={cameraRef}
-						className="hidden"
-				  accept="image/*"
-				  capture="environment"
-						onChange={handleSingleChange}
-				/>
-					</div>
+					{/* Single upload photo container */}
+					{photos.length > 0 && (
+						<div className="grid grid-cols-2 gap-3 mt-3 mx-4 rounded-lg border">
+							{photos.map((photo, index) => (
+								<div key={index} className="relative group">
+									<img
+										src={photo.preview}
+										alt=""
+										className="w-full h-24 object-cover rounded-lg"
+									/>
+									<button
+										type="button"
+										onClick={() => removeImage(index)}
+										className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+									>
+										<IoIosClose className="w-3 h-3" />
+									</button>
+								</div>
+							))}
+						</div>
+					)}
+					{/* Item classification */}
 					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4 space-y-2">
 						<div className="flex flex-row space-x-1 items-center">
 							<FaShirt className="text-purple-300 w-4 h-4" />
@@ -265,6 +287,7 @@ const removeImage = (index: number) => {
 							</p>
 						</div>
 					</div>
+
 					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4 space-y-2">
 						<div className="flex flex-row space-x-1 items-center">
 							<FaDollarSign className="text-blue-500 h-4 w-4" />
