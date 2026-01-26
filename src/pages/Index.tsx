@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '@/supabaseClient';
 
 import { garmentTypes } from '@/constants/garmentTypes';
@@ -32,6 +32,43 @@ const Index = () => {
 	});
 
 	const { user } = useAuth();
+	const bulkRef = useRef<HTMLInputElement | null>(null);
+	const singleRef = useRef<HTMLInputElement | null>(null);
+
+	const handleBulkClick = () => {
+		bulkRef.current?.click();
+	};
+
+	const handleSingleClick = () => {
+		singleRef.current?.click();
+	};
+
+	const handleBulkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = e.target.files;
+		if (!files) return;
+
+		const fileArray = Array.from(files);
+		console.log('Bulk upload:', fileArray);
+
+		e.target.value = '';
+	};
+
+	const handleSingleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = e.target.files;
+		if (!files) return;
+
+		const fileArray = Array.from(files);
+
+		if (fileArray.length > 5) {
+			alert('You can upload up to 5 photos only');
+			e.target.value = '';
+			return;
+		}
+
+		console.log('Single upload (max 5):', fileArray);
+
+		e.target.value = '';
+	};
 
 	const handleTypeSelection = (event) => {
 		setGarmentType(event.target.value);
@@ -75,7 +112,11 @@ const Index = () => {
 	return (
 		<div className="flex flex-1 w-full">
 			<main className="container mx-auto px-4 py-8 flex flex-col space-y-8">
-				<div className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg shadow-md border-gray-200 hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
+				{/* BULK UPLOAD */}
+				<div
+					onClick={handleBulkClick}
+					className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg shadow-md border-gray-200 cursor-pointer group hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]"
+				>
 					<div className="flex flex-col items-center text-center md:items-start md:text-start md:flex-row">
 						<div className="bg-purple-600 shadow-lg shadow-purple-500/50 w-fit p-3 rounded-md md:mr-2">
 							<PhotoLibraryIcon
@@ -90,13 +131,24 @@ const Index = () => {
 							</p>
 						</div>
 					</div>
-					<div className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 mt-16 mb-8 py-8 px-4 space-y-2">
+					<div className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 mt-16 mb-8 py-8 px-4 space-y-2 group-hover:border-rose-400 group-hover:bg-pink-50 group-hover:shadow-lg group-hover:shadow-pink-100 transition">
 						<UploadIcon className="text-pink-300 w-6 h-6" fontSize="large" />
 						<h2 className="font-semibold text-lg">Select Photos</h2>
 						<p>Choose multiple images</p>
 					</div>
+					{/* HIDDEN INPUTS */}
+					<input
+						type="file"
+						ref={bulkRef}
+						className="hidden"
+						accept="image/*"
+						multiple
+						onChange={handleBulkChange}
+					/>
 				</div>
-				<div className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
+
+				{/* SINGLE UP TO 5 */}
+				<div className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 cursor-pointer hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
 					<div className="flex flex-col md:flex-row">
 						<div className="bg-rose-600 shadow-lg shadow-rose-500/50 w-fit p-3 rounded-md md:mr-2">
 							<CameraAltIcon className="w-6 h-6 text-white" fontSize="large" />
@@ -107,11 +159,14 @@ const Index = () => {
 						</div>
 					</div>
 					<p className="font-semibold mt-6 mx-4">Item Photos (up to 5)</p>
-					<div className="rounded-lg bg-gray-200 border-dashed flex flex-col items-center text-center mx-4 mt-2 mb-6 p-4 space-y-2">
+					<div
+						onClick={handleSingleClick}
+						className="rounded-lg bg-gray-100 border-pink-200 border-2 border-dashed flex flex-col items-center text-center mx-4 mt-2 mb-6 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition"
+					>
 						<UploadIcon className="text-pink-300" />
 						<p>Upload from device</p>
 					</div>
-					<div className="rounded-lg bg-gray-200 border-dashed flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2">
+					<div className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition">
 						<CameraAltIcon className="text-pink-300" />
 						<p>Take photo</p>
 					</div>
