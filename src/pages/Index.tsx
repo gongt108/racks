@@ -175,7 +175,7 @@ const Index = () => {
 				</div>
 
 				{/* SINGLE UP TO 5 */}
-				<div className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 cursor-pointer hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
+				<div className="mx-4 md:mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 cursor-pointer hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
 					<div className="flex flex-col md:flex-row">
 						<div className="bg-rose-600 shadow-lg shadow-rose-500/50 w-fit p-3 rounded-md md:mr-2">
 							<CameraAltIcon className="w-6 h-6 text-white" fontSize="large" />
