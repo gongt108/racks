@@ -17,10 +17,20 @@ import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
+
+type PhotoItem = {
+  file: File;
+  preview: string;
+};
+
+
+
+
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
 	const [purchasePrice, setPurchasePrice] = useState<number | null>(null);
 	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
+const [photos, setPhotos] = useState<PhotoItem[]>([]);
 	const [singleItem, setSingleItem] = useState({
 		photos: [] as File[],
 		category: '',
@@ -35,6 +45,13 @@ const Index = () => {
 	const bulkRef = useRef<HTMLInputElement | null>(null);
 	const singleRef = useRef<HTMLInputElement | null>(null);
 	const cameraRef = useRef<HTMLInputElement | null>(null);
+
+useEffect(() => {
+  return () => {
+    photos.forEach((img) => URL.revokeObjectURL(img.preview));
+  };
+}, [photos]);
+
 
 	const handleBulkClick = () => {
 		bulkRef.current?.click();
@@ -71,10 +88,24 @@ const handleCameraClick = () => {
 			return;
 		}
 
+		const newImages = fileArray.map((file) => ({
+  file,
+  preview: URL.createObjectURL(file),
+}));
+
+
 		console.log('Single upload (max 5):', fileArray);
 
 		e.target.value = '';
 	};
+
+const removeImage = (index: number) => {
+  setImages((prev) => {
+    URL.revokeObjectURL(prev[index].preview);
+    return prev.filter((_, i) => i !== index);
+  });
+};
+
 
 	const handleTypeSelection = (event) => {
 		setGarmentType(event.target.value);
