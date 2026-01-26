@@ -181,7 +181,7 @@ const handleCameraClick = () => {
 						onChange={handleSingleChange}
 					/>
 					</div>
-					<div className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition">
+					<div onClick={handleCameraClick} className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 my-6 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition">
 						<CameraAltIcon className="text-pink-300" />
 						<p>Take photo</p>
 					<input
