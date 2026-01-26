@@ -72,12 +72,9 @@ const Index = () => {
 	};
 
 	const handleSingleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const files = e.target.files;
-		if (!files) return;
+  const files = Array.from(e.target.files || []);
 
-		const fileArray = Array.from(files);
-
-		if (fileArray.length > 5) {
+		if (files.length > 5) {
 			alert('You can upload up to 5 photos only');
 			e.target.value = '';
 			return;
@@ -87,10 +84,6 @@ const Index = () => {
 			file,
 			preview: URL.createObjectURL(file),
 		}));
-
-		setPhotos((prev) => [...prev, ...newImages].slice(0, 5));
-
-		console.log('Single upload (max 5):', fileArray);
 
 		e.target.value = '';
 	};
