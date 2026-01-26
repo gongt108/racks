@@ -79,24 +79,116 @@ const handleCameraClick = () => triggerFileInput(cameraRef);
 		}));
 	};
 
-	const handleAddItem = () => {
-		const newItem = {
-			...singleItem,
-			status: 'available',
-			user: null as string | null,
-			category: garmentType,
-			purchasePrice: purchasePrice,
-			listingPrice: autoPricingChecked ? null : singleItem.listingPrice,
-		};
-		// Logic to add the item to inventory goes here
-		if (autoPricingChecked) {
-			const listingPrice = purchasePrice
-				? Number((purchasePrice * 2).toFixed(2))
-				: null;
-			newItem.listingPrice = listingPrice;
-		}
-		console.log('Item added:', newItem);
-	};
+	const handleAddItem = async () => {
+  if (!user) {
+    alert('You must be logged in to add an item');
+    return;
+  }
+
+  if (!garmentType) {
+    alert('Garment type is required');
+    return;
+  }
+
+  if (!purchasePrice) {
+    alert('Purchase price is required');
+    return;
+  }
+
+  setIsAnalyzing(true);
+
+  try {
+    /* ===============================
+       1️⃣ Calculate listing price
+    ================================ */
+    const listingPrice = autoPricingChecked
+      ? Number((purchasePrice * 2).toFixed(2))
+      : singleItem.listingPrice;
+
+    /* ===============================
+       2️⃣ Create item first
+    ================================ */
+    const { data: item, error: itemError } = await supabase
+      .from('inventory')
+      .insert([
+        {
+          user_id: user.id,
+          category: garmentType,
+          purchase_price: purchasePrice,
+          listing_price: listingPrice,
+          source: singleItem.source || null,
+          description: singleItem.description || null,
+          custom_tags: singleItem.customTags.length
+            ? singleItem.customTags
+            : null,
+          status: 'available',
+          photos: [], // filled after upload
+        },
+      ])
+      .select()
+      .single();
+
+    if (itemError || !item) throw itemError;
+
+    /* ===============================
+       3️⃣ Upload photos to Storage
+    ================================ */
+    const uploadedPhotoUrls: string[] = [];
+
+    for (const photo of photos) {
+      const filePath = `${user.id}/${item.id}/${crypto.randomUUID()}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('item-photos')
+        .upload(filePath, photo.file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('item-photos')
+        .getPublicUrl(filePath);
+
+      uploadedPhotoUrls.push(publicUrlData.publicUrl);
+    }
+
+    /* ===============================
+       4️⃣ Save photo URLs on item
+    ================================ */
+    if (uploadedPhotoUrls.length > 0) {
+      const { error: updateError } = await supabase
+        .from('inventory')
+        .update({ photos: uploadedPhotoUrls })
+        .eq('id', item.id);
+
+      if (updateError) throw updateError;
+    }
+
+    console.log('Item created with photos:', item.id);
+
+    /* ===============================
+       5️⃣ Reset form
+    ================================ */
+    setGarmentType('');
+    setPurchasePrice(null);
+    setPhotos([]);
+    setSingleItem({
+      photos: [],
+      category: '',
+      purchasePrice: null,
+      listingPrice: null,
+      source: '',
+      description: '',
+      customTags: [],
+    });
+
+  } catch (err) {
+    console.error('Failed to add item:', err);
+    alert('Failed to add item. Please try again.');
+  } finally {
+    setIsAnalyzing(false);
+  }
+};
+
 
 	return (
 		<div className="flex flex-1 w-full">
