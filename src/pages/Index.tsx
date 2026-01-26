@@ -80,7 +80,7 @@ const Index = () => {
 			return;
 		}
 
-		const newImages = fileArray.map((file) => ({
+		const newImages = files.map((file) => ({
 			file,
 			preview: URL.createObjectURL(file),
 		}));
