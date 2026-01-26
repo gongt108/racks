@@ -80,10 +80,12 @@ const Index = () => {
 			return;
 		}
 
-		const newImages = files.map((file) => ({
+		const newPhotos = files.map((file) => ({
 			file,
 			preview: URL.createObjectURL(file),
 		}));
+
+		setPhotos((prev) => [...prev, ...newPhotos]);
 
 		e.target.value = '';
 	};
