@@ -223,6 +223,7 @@ const Index = () => {
 					{/* Single upload photo container */}
 					{photos.length > 0 && (
 						<div className="grid grid-cols-2 gap-3 mt-3 mx-4 rounded-lg border">
+							<div className="rounded-lg bg-gray-200 text-grey-300 px-2 py-1">AI Scan</div>
 							{photos.map((photo, index) => (
 								<div key={index} className="relative group">
 									<img
