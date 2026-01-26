@@ -405,7 +405,7 @@ const Index = () => {
 					Add Item
 				</button>
 			{!isAnalyzing && (
-    <div className="w-full absolute z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center animate-pulse">
+    <div className="w-full fixed mx-4 z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center animate-pulse">
         <div className="mr-3">
             <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
         </div>
