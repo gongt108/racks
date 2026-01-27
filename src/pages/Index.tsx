@@ -10,6 +10,7 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { FaShirt, FaDollarSign } from 'react-icons/fa6';
 import { BsFillInfoCircleFill } from 'react-icons/bs';
 import { IoIosClose } from 'react-icons/io';
+import { BsRobot } from 'react-icons/bs';
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -260,11 +261,15 @@ const Index = () => {
 					{/* Single upload photo container */}
 					{photos.length > 0 && (
 						<div className="flex flex-col mt-3 mx-4 rounded-lg border">
-							<div
-								onClick={() => setIsAnalyzing(true)}
-								className="rounded-lg bg-gray-200 text-grey-300 px-2 py-1"
-							>
-								AI Scan
+							<div className="flex flex-row justify-between mx-2 my-2 items-center">
+								<h2 className="font-semibold">Photos</h2>
+								<div
+									onClick={() => setIsAnalyzing(true)}
+									className=" flex flex-row items-center rounded-lg bg-gray-200 text-grey-300 px-2 py-1 text-gray-500 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md font-semibold cursor-pointer"
+								>
+									<BsRobot className="h-4 w-4 mr-2" />
+									<p>AI Scan</p>
+								</div>
 							</div>
 							<div className="grid grid-cols-2 gap-3 mt-3">
 								{photos.map((photo, index) => (
@@ -277,7 +282,7 @@ const Index = () => {
 										<button
 											type="button"
 											onClick={() => removeImage(index, photos, setPhotos)}
-											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full"
+											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 transition"
 										>
 											<IoIosClose className="w-3 h-3" />
 										</button>
