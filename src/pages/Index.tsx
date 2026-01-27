@@ -19,13 +19,12 @@ import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 import {
-  triggerFileInput,
-  handleBulkUpload,
-  handleSingleUpload,
-  removeImage,
-  PhotoItem,
+	triggerFileInput,
+	handleBulkUpload,
+	handleSingleUpload,
+	removeImage,
+	PhotoItem,
 } from '@/utils/fileUploads';
-
 
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
@@ -55,9 +54,8 @@ const Index = () => {
 	}, [photos]);
 
 	const handleBulkClick = () => triggerFileInput(bulkRef);
-const handleSingleClick = () => triggerFileInput(singleRef);
-const handleCameraClick = () => triggerFileInput(cameraRef);
-
+	const handleSingleClick = () => triggerFileInput(singleRef);
+	const handleCameraClick = () => triggerFileInput(cameraRef);
 
 	const handleTypeSelection = (event) => {
 		setGarmentType(event.target.value);
@@ -80,115 +78,101 @@ const handleCameraClick = () => triggerFileInput(cameraRef);
 	};
 
 	const handleAddItem = async () => {
-  if (!user) {
-    alert('You must be logged in to add an item');
-    return;
-  }
+		if (!user) {
+			alert('You must be logged in to add an item');
+			return;
+		}
 
-  if (!garmentType) {
-    alert('Garment type is required');
-    return;
-  }
+		if (!garmentType) {
+			alert('Garment type is required');
+			return;
+		}
 
-  if (!purchasePrice) {
-    alert('Purchase price is required');
-    return;
-  }
+		if (!purchasePrice) {
+			alert('Purchase price is required');
+			return;
+		}
 
-  setIsAnalyzing(true);
+		setIsAnalyzing(true);
 
-  try {
-    /* ===============================
-       1️⃣ Calculate listing price
-    ================================ */
-    const listingPrice = autoPricingChecked
-      ? Number((purchasePrice * 2).toFixed(2))
-      : singleItem.listingPrice;
+		try {
+			const listingPrice = autoPricingChecked
+				? Number((purchasePrice * 2).toFixed(2))
+				: singleItem.listingPrice;
 
-    /* ===============================
-       2️⃣ Create item first
-    ================================ */
-    const { data: item, error: itemError } = await supabase
-      .from('inventory')
-      .insert([
-        {
-          user_id: user.id,
-          category: garmentType,
-          purchase_price: purchasePrice,
-          listing_price: listingPrice,
-          source: singleItem.source || null,
-          description: singleItem.description || null,
-          custom_tags: singleItem.customTags.length
-            ? singleItem.customTags
-            : null,
-          status: 'available',
-          photos: [], // filled after upload
-        },
-      ])
-      .select()
-      .single();
+			const { data: item, error: itemError } = await supabase
+				.from('items')
+				.insert([
+					{
+						user_id: user.id,
+						category: garmentType,
+						purchase_price: purchasePrice,
+						listing_price: listingPrice,
+						source: singleItem.source || null,
+						description: singleItem.description || null,
+						custom_tags: singleItem.customTags.length
+							? singleItem.customTags
+							: null,
+						status: 'available',
+						photos: [], // filled after upload
+					},
+				])
+				.select()
+				.single();
 
-    if (itemError || !item) throw itemError;
+			if (itemError || !item) throw itemError;
 
-    /* ===============================
-       3️⃣ Upload photos to Storage
-    ================================ */
-    const uploadedPhotoUrls: string[] = [];
+			// Upload photos to Supabase Storage
+			const uploadedPhotoUrls: string[] = [];
 
-    for (const photo of photos) {
-      const filePath = `${user.id}/${item.id}/${crypto.randomUUID()}`;
+			for (const photo of photos) {
+				const filePath = `${user.id}/${item.id}/${crypto.randomUUID()}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('item-photos')
-        .upload(filePath, photo.file);
+				const { error: uploadError } = await supabase.storage
+					.from('item-photos')
+					.upload(filePath, photo.file);
 
-      if (uploadError) throw uploadError;
+				if (uploadError) throw uploadError;
 
-      const { data: publicUrlData } = supabase.storage
-        .from('item-photos')
-        .getPublicUrl(filePath);
+				const { data: publicUrlData } = supabase.storage
+					.from('item-photos')
+					.getPublicUrl(filePath);
 
-      uploadedPhotoUrls.push(publicUrlData.publicUrl);
-    }
+				uploadedPhotoUrls.push(publicUrlData.publicUrl);
+			}
 
-    /* ===============================
-       4️⃣ Save photo URLs on item
-    ================================ */
-    if (uploadedPhotoUrls.length > 0) {
-      const { error: updateError } = await supabase
-        .from('inventory')
-        .update({ photos: uploadedPhotoUrls })
-        .eq('id', item.id);
+			// Update item with photo URLs
+			if (uploadedPhotoUrls.length > 0) {
+				const { error: updateError } = await supabase
+					.from('items')
+					.update({ photos: uploadedPhotoUrls })
+					.eq('id', item.id);
 
-      if (updateError) throw updateError;
-    }
+				if (updateError) throw updateError;
+			}
 
-    console.log('Item created with photos:', item.id);
+			console.log('Item created with photos:', item.id);
 
-    /* ===============================
-       5️⃣ Reset form
-    ================================ */
-    setGarmentType('');
-    setPurchasePrice(null);
-    setPhotos([]);
-    setSingleItem({
-      photos: [],
-      category: '',
-      purchasePrice: null,
-      listingPrice: null,
-      source: '',
-      description: '',
-      customTags: [],
-    });
-
-  } catch (err) {
-    console.error('Failed to add item:', err);
-    alert('Failed to add item. Please try again.');
-  } finally {
-    setIsAnalyzing(false);
-  }
-};
-
+			// Reset form
+			setGarmentType('');
+			setPurchasePrice(null);
+			setPhotos([]);
+			setSingleItem({
+				photos: [],
+				category: '',
+				purchasePrice: null,
+				listingPrice: null,
+				source: '',
+				description: '',
+				customTags: [],
+			});
+		} catch (err) {
+			console.error('Failed to add item:', err);
+			alert('Failed to add item. Please try again.');
+		} finally {
+			setIsAnalyzing(false);
+		}
+	};
 
 	return (
 		<div className="flex flex-1 w-full">
@@ -249,14 +233,13 @@ const handleCameraClick = () => triggerFileInput(cameraRef);
 							<p>Upload from device</p>
 							{/* HIDDEN INPUTS */}
 							<input
-  type="file"
-  ref={singleRef}
-  className="hidden"
-  accept="image/*"
-  multiple
-  onChange={(e) => handleSingleUpload(e, setPhotos)}
-/>
-
+								type="file"
+								ref={singleRef}
+								className="hidden"
+								accept="image/*"
+								multiple
+								onChange={(e) => handleSingleUpload(e, setPhotos)}
+							/>
 						</div>
 						<div
 							onClick={handleCameraClick}
@@ -265,36 +248,42 @@ const handleCameraClick = () => triggerFileInput(cameraRef);
 							<CameraAltIcon className="text-pink-300" />
 							<p>Take photo</p>
 							<input
-  type="file"
-  ref={cameraRef}
-  className="hidden"
-  accept="image/*"
-  capture="environment"
-  onChange={(e) => handleSingleUpload(e, setPhotos)}
+								type="file"
+								ref={cameraRef}
+								className="hidden"
+								accept="image/*"
+								capture="environment"
+								onChange={(e) => handleSingleUpload(e, setPhotos)}
 							/>
 						</div>
 					</div>
 					{/* Single upload photo container */}
 					{photos.length > 0 && (
-						<div className="grid grid-cols-2 gap-3 mt-3 mx-4 rounded-lg border">
-							<div className="rounded-lg bg-gray-200 text-grey-300 px-2 py-1">AI Scan</div>
-							{photos.map((photo, index) => (
-								<div key={index} className="relative group">
-									<img
-										src={photo.preview}
-										alt=""
-										className="w-full h-24 object-cover rounded-lg"
-									/>
-									<button
-  type="button"
-  onClick={() => removeImage(index, photos, setPhotos)}
-  className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full"
->
-  <IoIosClose className="w-3 h-3" />
-</button>
-
-								</div>
-							))}
+						<div className="flex flex-col mt-3 mx-4 rounded-lg border">
+							<div
+								onClick={() => setIsAnalyzing(true)}
+								className="rounded-lg bg-gray-200 text-grey-300 px-2 py-1"
+							>
+								AI Scan
+							</div>
+							<div className="grid grid-cols-2 gap-3 mt-3">
+								{photos.map((photo, index) => (
+									<div key={index} className="relative group">
+										<img
+											src={photo.preview}
+											alt=""
+											className="w-full h-24 object-cover rounded-lg"
+										/>
+										<button
+											type="button"
+											onClick={() => removeImage(index, photos, setPhotos)}
+											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full"
+										>
+											<IoIosClose className="w-3 h-3" />
+										</button>
+									</div>
+								))}
+							</div>
 						</div>
 					)}
 					{/* Item classification */}
@@ -460,16 +449,19 @@ const handleCameraClick = () => triggerFileInput(cameraRef);
 				>
 					Add Item
 				</button>
-			{!isAnalyzing && (
-    <div className="w-full fixed mx-4 z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center animate-pulse">
-        <div className="mr-3">
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-        </div>
-        <p className="text-blue-700 font-medium text-sm">
-            Gemini AI is scanning your photo for details...
-        </p>
-    </div>
-			)}
+				{isAnalyzing && (
+					<div className="w-full fixed mx-4 z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center animate-pulse">
+						<div className="mr-3">
+							<div
+								className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+								style={{ animationDelay: '0s' }}
+							></div>
+						</div>
+						<p className="text-blue-700 font-medium text-sm">
+							Gemini AI is scanning your photo for details...
+						</p>
+					</div>
+				)}
 			</main>
 		</div>
 	);
