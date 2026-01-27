@@ -44,6 +44,7 @@ const Index = () => {
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 
 	const { user } = useAuth();
+console.log(user.id)
 	const bulkRef = useRef<HTMLInputElement | null>(null);
 	const singleRef = useRef<HTMLInputElement | null>(null);
 	const cameraRef = useRef<HTMLInputElement | null>(null);
