@@ -168,8 +168,8 @@ const Index = () => {
 				customTags: [],
 			});
 		} catch (err) {
-			console.error('Failed to add item:', err);
-			alert(err);
+			console.error(err);
+			alert('Failed to add item. Please try again.');
 		} finally {
 			setIsAnalyzing(false);
 		}
