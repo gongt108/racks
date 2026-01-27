@@ -105,7 +105,7 @@ const Index = () => {
 				.from('items')
 				.insert([
 					{
-						seller: user.id,
+						user_id: user.id,
 						category: garmentType,
 						purchase_price: purchasePrice,
 						listing_price: listingPrice,
