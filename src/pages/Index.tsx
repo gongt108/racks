@@ -82,6 +82,8 @@ const Index = () => {
 	  data: { user },
 		} = await supabase.auth.getUser();
 
+console.log(user);
+
 		if (!user) {
 			alert('You must be logged in to add an item');
 			return;
