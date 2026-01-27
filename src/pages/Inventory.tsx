@@ -3,10 +3,35 @@ import { supabase } from '@/supabaseClient';
 import { garmentTypes } from '@/constants/garmentTypes';
 import { FaBoxOpen, FaSearch } from 'react-icons/fa';
 
+const import { useState } from 'react';
+import { MenuItem, Select, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
+
+// Status options with hex colors for MUI
+const STATUS_OPTIONS = {
+	available: { label: 'Available', bgColor: '#16a34a', textColor: '#ffffff' },
+	sold: { label: 'Sold', bgColor: '#dc2626', textColor: '#ffffff' },
+	missingInfo: { label: 'Missing Info', bgColor: '#facc15', textColor: '#000000' },
+	reserved: { label: 'Reserved', bgColor: '#3b82f6', textColor: '#ffffff' },
+} as const;
+
+type StatusKey = keyof typeof STATUS_OPTIONS;
+	
 const Inventory = () => {
 	const [query, setQuery] = useState('');
-	const [items, setItems] = useState<Array<any>>([1]); // Replace 'any' with your item type
-	
+	// const [items, setItems] = useState<Array<any>>([1]); // Replace 'any' with your item type
+	const [items, setItems] = useState([
+		{ id: 1, name: 'Blue Shirt', status: 'available' as StatusKey },
+		{ id: 2, name: 'Red Dress', status: 'sold' as StatusKey },
+		{ id: 3, name: 'Yellow Jacket', status: 'missingInfo' as StatusKey },
+	]);
+
+	// Update item status
+	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {
+		setItems((prev) =>
+			prev.map((item) => (item.id === itemId ? { ...item, status: newStatus } : item))
+		);
+	};
+
 	const findIcon = (item) => {
 		const Icon = item.icon
 		return <Icon />
@@ -60,18 +85,65 @@ const Inventory = () => {
 
 			{/* Items Grid - Hidden when empty */}
 			{/* {items.length > 0 && ( */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-				{items.map((item, id) => (
-					<div key={id} className="bg-white rounded-lg shadow p-4">
-						{/* Item content */}
-						<img src="" alt="Item image" />
-						<h2 className="text-lg font-semibold mb-2">Item {id + 1}</h2>
-						<p>Added</p>
-						<p>Paid: </p>
-						<p>Listed: </p>
-					</div>
-				))}
+		<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+	{items.map((item, id) => {
+		const statusData = STATUS_OPTIONS[item.status];
+
+		return (
+			<div key={id} className="bg-white rounded-lg shadow p-4 flex flex-col">
+				{/* Item image */}
+				<div className="h-40 w-full bg-gray-100 rounded-md mb-4 flex items-center justify-center">
+					<img src={item.image || ''} alt={`Item ${id + 1}`} className="h-full object-contain" />
+				</div>
+
+				{/* Item info */}
+				<h2 className="text-lg font-semibold mb-2">{item.name || `Item ${id + 1}`}</h2>
+				<p className="text-sm text-gray-500">Added: {item.added || '—'}</p>
+				<p className="text-sm text-gray-500">Paid: {item.paid || '—'}</p>
+				<p className="text-sm text-gray-500 mb-2">Listed: {item.listed || '—'}</p>
+
+				{/* Status badge */}
+				<span
+					className="inline-block px-3 py-1 rounded-full text-sm font-semibold mb-2"
+					style={{
+						backgroundColor: statusData.bgColor,
+						color: statusData.textColor,
+					}}
+				>
+					{statusData.label}
+				</span>
+
+				{/* Status dropdown (MUI) */}
+				<FormControl sx={{ minWidth: 120, mt: 'auto' }}>
+					<InputLabel id={`status-label-${id}`}>Status</InputLabel>
+					<Select
+						labelId={`status-label-${id}`}
+						value={item.status}
+						label="Status"
+						onChange={(e) =>
+							handleStatusChange(item.id, e.target.value as StatusKey)
+						}
+					>
+						{Object.entries(STATUS_OPTIONS).map(([key, { label, bgColor, textColor }]) => (
+							<MenuItem
+								key={key}
+								value={key}
+								sx={{
+									backgroundColor: bgColor,
+									color: textColor,
+									'&:hover': { opacity: 0.9 },
+								}}
+							>
+								{label}
+							</MenuItem>
+						))}
+					</Select>
+				</FormControl>
 			</div>
+		);
+	})}
+</div>
+
 			{/* )} */}
 		</div>
 	);
