@@ -43,8 +43,6 @@ const Index = () => {
 	});
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-	const { user } = useAuth();
-console.log(user.id)
 	const bulkRef = useRef<HTMLInputElement | null>(null);
 	const singleRef = useRef<HTMLInputElement | null>(null);
 	const cameraRef = useRef<HTMLInputElement | null>(null);
@@ -80,6 +78,10 @@ console.log(user.id)
 	};
 
 	const handleAddItem = async () => {
+		const {
+	  data: { user },
+		} = await supabase.auth.getUser();
+
 		if (!user) {
 			alert('You must be logged in to add an item');
 			return;
