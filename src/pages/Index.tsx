@@ -169,7 +169,7 @@ const Index = () => {
 			});
 		} catch (err) {
 			console.error('Failed to add item:', err);
-			alert('Failed to add item. Please try again.', err);
+			alert(err);
 		} finally {
 			setIsAnalyzing(false);
 		}
