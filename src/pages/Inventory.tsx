@@ -53,15 +53,15 @@ const Inventory = () => {
 			</div>
 
 			{/* Items Grid - Hidden when empty */}
-			{items.length > 0 && (
-				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-					{items.map((item) => (
-						<div key={item.id} className="bg-white rounded-lg shadow p-4">
-							{/* Item content */}
-						</div>
-					))}
-				</div>
-			)}
+			{/* {items.length > 0 && ( */}
+			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+				{items.map((item) => (
+					<div key={item.id} className="bg-white rounded-lg shadow p-4">
+						{/* Item content */}
+					</div>
+				))}
+			</div>
+			{/* )} */}
 		</div>
 	);
 };
