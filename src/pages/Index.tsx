@@ -282,7 +282,7 @@ const Index = () => {
 										<button
 											type="button"
 											onClick={() => removeImage(index, photos, setPhotos)}
-											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-600 transition"
+											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center bg-red-600 cursor-pointer"
 										>
 											<IoIosClose className="w-3 h-3" />
 										</button>
