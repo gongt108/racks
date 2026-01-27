@@ -3,7 +3,7 @@ import { FaBoxOpen, FaSearch } from 'react-icons/fa';
 
 const Inventory = () => {
 	const [query, setQuery] = useState('');
-	const [items, setItems] = useState<Array<any>>([]); // Replace 'any' with your item type
+	const [items, setItems] = useState<Array<any>>([1]); // Replace 'any' with your item type
 
 	return (
 		<div className="flex flex-col w-full h-full">
@@ -55,9 +55,14 @@ const Inventory = () => {
 			{/* Items Grid - Hidden when empty */}
 			{/* {items.length > 0 && ( */}
 			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-				{items.map((item) => (
-					<div key={item.id} className="bg-white rounded-lg shadow p-4">
+				{items.map((item, id) => (
+					<div key={id} className="bg-white rounded-lg shadow p-4">
 						{/* Item content */}
+						<img src="" alt="Item image" />
+						<h2 className="text-lg font-semibold mb-2">Item {id + 1}</h2>
+						<p>Added</p>
+						<p>Paid: </p>
+						<p>Listed: </p>
 					</div>
 				))}
 			</div>
