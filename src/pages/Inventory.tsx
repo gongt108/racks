@@ -1,10 +1,16 @@
 import { useState } from 'react';
+import { supabase } from '@/supabaseClient';
+import { garmentTypes } from '@/constants/garmentTypes';
 import { FaBoxOpen, FaSearch } from 'react-icons/fa';
 
 const Inventory = () => {
 	const [query, setQuery] = useState('');
 	const [items, setItems] = useState<Array<any>>([1]); // Replace 'any' with your item type
-
+	
+	const findIcon = (item) => {
+		const Icon = item.icon
+		return <Icon />
+	}
 	return (
 		<div className="flex flex-col w-full h-full">
 			{/* Top Navigation Bar */}
