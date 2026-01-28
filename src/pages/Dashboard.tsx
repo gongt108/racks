@@ -76,7 +76,6 @@ useEffect(() => {
 			const { data, error } = await supabase
 	.from('items')
 	.select('status, count:status')
-	.group('status');
 
 			if (error) {
 				console.error(error);
@@ -88,7 +87,7 @@ useEffect(() => {
 
 		fetchItems();
 	}, []);
-
+console.log(items);
 const getCountByValue = (
 	value: string
 ): number => {
