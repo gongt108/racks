@@ -15,8 +15,7 @@ import { IoDocumentText } from 'react-icons/io5';
 
 type Stage = {
 	label: string;
-	count: number;
-	amount: number;
+	value: string;
 	icon: React.ReactNode;
 	bgColor: string;
 	iconBg: string;
