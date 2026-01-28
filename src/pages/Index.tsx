@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
+import { toast } from 'react-toastify';
 
 import { garmentTypes } from '@/constants/garmentTypes';
 import { useAuth } from '@/hooks/useAuth';
@@ -161,6 +162,7 @@ const Index = () => {
 			}
 
 			console.log('Item created with photos:', item.id);
+			toast.success('Item added successfully!');
 
 			// Reset form
 			setGarmentType('');
