@@ -32,14 +32,14 @@ const stages: Stage[] = [
 	},
 	{
 		label: 'Itemized',
-		value: 'itemized'
+		value: 'itemized',
 		icon: <ListAltIcon />,
 		bgColor: '#FCE4EC',
 		iconBg: '#EC407A',
 	},
 	{
 		label: 'Sanitized',
-		value: 'sanitized'
+		value: 'sanitized',
 		icon: <AutoAwesomeIcon />,
 		bgColor: '#F3E5F5',
 		iconBg: '#AB47BC',
