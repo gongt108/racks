@@ -1,4 +1,5 @@
 import { AuthProvider } from '@/context/AuthContext';
+import { PricingProvider } from '@/context/PricingContext';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 
@@ -8,6 +9,7 @@ import Index from './pages/Index';
 import Login from './pages/Login';
 import Inventory from './pages/Inventory';
 import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
@@ -16,6 +18,7 @@ function App() {
 	return (
 		<>
 			<AuthProvider>
+				<PricingProvider>
 				<BrowserRouter>
 					<ToastContainer
 						position="top-right"
@@ -30,6 +33,7 @@ function App() {
 							<Route path="/" element={<Index />} />
 							<Route path="/inventory" element={<Inventory />} />
 							<Route path="/dashboard" element={<Dashboard />} />
+							<Route path="/settings" element={<Settings />} />
 							<Route path="/profile" element={<Profile />} />
 							<Route path="*" element={<NotFound />} />
 						</Route>
@@ -38,6 +42,7 @@ function App() {
 						</Route>
 					</Routes>
 				</BrowserRouter>
+				</PricingProvider>
 			</AuthProvider>
 		</>
 	);
