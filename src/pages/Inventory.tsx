@@ -30,6 +30,8 @@ type StatusKey = keyof typeof STATUS_OPTIONS;
 const Inventory = () => {
 	const [query, setQuery] = useState('');
 	const [items, setItems] = useState<Array<any>>([]); // Replace 'any' with your item type
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [itemToDelete, setItemToDelete] = useState(null);
 
 	useEffect(() => {
 		// Fetch items from Supabase or your backend here
@@ -90,13 +92,15 @@ const Inventory = () => {
 		return <Icon className="h-10 w-10 text-gray-500" />;
 	};
 
-	const triggerDeleteModal = (id) => {
+	const triggerDeleteModal = (item) => {
 		// Implement delete modal trigger logic here
-		console.log('Trigger delete modal for item ID:', id);
+		console.log('Trigger delete modal for item ID:', item.id);
+		setIsDeleting(true);
+		setItemToDelete(item);
 	};
 
 	return (
-		<div className="flex flex-col w-full h-full">
+		<div className="flex flex-col w-full h-full relative">
 			{/* Top Navigation Bar */}
 			<div className="bg-white w-full border-b border-gray-200">
 				<div className="w-full max-w-7xl mx-auto flex flex-row justify-between items-center py-3 px-6">
@@ -225,13 +229,60 @@ const Inventory = () => {
 										</div>
 									</FormControl>
 									<FaTrashAlt
-										onClick={() => triggerDeleteModal(item.id)}
+										onClick={() => triggerDeleteModal(item)}
 										className="text-red-500 w-4 h-4 cursor-pointer hover:text-red-700 transition"
 									/>
 								</div>
 							</div>
 						);
 					})}
+				</div>
+			)}
+			{isDeleting && (
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+					onClick={() => {
+						setIsDeleting(false);
+						setItemToDelete(null);
+					}}
+				>
+					<div
+						className="bg-white rounded-2xl shadow-xl p-6 w-80 text-center animate-scale-in"
+						onClick={(e) => e.stopPropagation()} // 👈 THIS is the key
+					>
+						<div className="text-4xl mb-2">🗑️</div>
+
+						<h2 className="text-lg font-semibold mb-2">Delete this item?</h2>
+
+						<p className="text-sm text-gray-600 mb-5">
+							Are you sure you want to remove{' '}
+							<span className="font-medium text-gray-800">
+								{itemToDelete?.name || `Item ${itemToDelete?.id}`}
+							</span>
+							?
+							<br />
+							This action can’t be undone.
+						</p>
+
+						<div className="flex gap-3 justify-center">
+							<button
+								className="px-4 py-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+								onClick={() => {
+									setIsDeleting(false);
+									setItemToDelete(null);
+								}}
+							>
+								Never mind 💭
+							</button>
+
+							<button
+								className="px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
+								//   onClick={handleDelete}
+							>
+								Yes, delete 💔
+							</button>
+						</div>
+					</div>
 				</div>
 			)}
 		</div>
