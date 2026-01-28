@@ -91,14 +91,14 @@ const Inventory = () => {
 			<div key={id} className="bg-white rounded-lg shadow p-4 flex flex-col">
 				{/* Item image */}
 				<div className="h-40 w-full bg-gray-100 rounded-md mb-4 flex items-center justify-center">
-					<img src={item.image || ''} alt={`Item ${id + 1}`} className="h-full object-contain" />
+					<img src='' alt={`Item ${id + 1}`} className="h-full object-contain" />
 				</div>
 
 				{/* Item info */}
 				<h2 className="text-lg font-semibold mb-2">{item.name || `Item ${id + 1}`}</h2>
-				<p className="text-sm text-gray-500">Added: {item.added || '—'}</p>
-				<p className="text-sm text-gray-500">Paid: {item.paid || '—'}</p>
-				<p className="text-sm text-gray-500 mb-2">Listed: {item.listed || '—'}</p>
+				<p className="text-sm text-gray-500">Added: </p>
+				<p className="text-sm text-gray-500">Paid: </p>
+				<p className="text-sm text-gray-500 mb-2">Listed: </p>
 
 				{/* Status badge */}
 				<span
