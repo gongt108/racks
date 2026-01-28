@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { supabase } from '@/supabaseClient';
 import { garmentTypes } from '@/constants/garmentTypes';
 import { FaBoxOpen, FaSearch } from 'react-icons/fa';
-
-const import { useState } from 'react';
 import { MenuItem, Select, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 
 // Status options with hex colors for MUI
