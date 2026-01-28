@@ -1,11 +1,14 @@
-import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/supabaseClient';
 import { Box, Typography, Stack } from '@mui/material';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import GridViewIcon from '@mui/icons-material/GridView';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import {
+	WarningAmber as WarningAmberIcon,
+	ListAlt as ListAltIcon,
+	AutoAwesome as AutoAwesomeIcon,
+	GridView as GridViewIcon,
+	LocalOffer as LocalOfferIcon,
+	CheckCircle as CheckCircleIcon,
+} from '@mui/icons-material';
 import { FaShirt, FaBoxesStacked } from 'react-icons/fa6';
 import { FcSearch, FcSupport } from 'react-icons/fc';
 import { IoDocumentText } from 'react-icons/io5';
@@ -23,23 +26,20 @@ type Stage = {
 const stages: Stage[] = [
 	{
 		label: 'Missing Info',
-		count: 0,
-		amount: 0,
+		value: 'missing',
 		icon: <WarningAmberIcon />,
 		bgColor: '#FDECEC',
 		iconBg: '#E53935',
 	},
 	{
 		label: 'Itemized',
-		count: 0,
-		amount: 0,
+		value: 0,
 		icon: <ListAltIcon />,
 		bgColor: '#FCE4EC',
 		iconBg: '#EC407A',
 	},
 	{
 		label: 'Sanitize',
-		count: 0,
 		amount: 0,
 		icon: <AutoAwesomeIcon />,
 		bgColor: '#F3E5F5',
@@ -47,7 +47,6 @@ const stages: Stage[] = [
 	},
 	{
 		label: 'Racked',
-		count: 0,
 		amount: 0,
 		icon: <GridViewIcon />,
 		bgColor: '#EDE7F6',
@@ -55,16 +54,14 @@ const stages: Stage[] = [
 	},
 	{
 		label: 'Listed',
-		count: 0,
-		amount: 0,
+		value: 'listed',
 		icon: <LocalOfferIcon />,
 		bgColor: '#FCE4EC',
 		iconBg: '#F06292',
 	},
 	{
 		label: 'Sold',
-		count: 0,
-		amount: 0,
+		value: 'sold',
 		icon: <CheckCircleIcon />,
 		bgColor: '#E8F5E9',
 		iconBg: '#2E7D32',
@@ -72,7 +69,35 @@ const stages: Stage[] = [
 	},
 ];
 
-export default function Dashboard() {
+const Dashboard = () => {
+	const [items, setItems] = useState<Array<any>>([]); // Replace 'any' with your item type
+useEffect(() => {
+		// Fetch items from Supabase or your backend here
+		const fetchItems = async () => {
+			const { data, error } = await supabase
+	.from('items')
+	.select('status, count:status')
+	.group('status');
+
+			if (error) {
+				console.error(error);
+				return;
+			}
+
+			setItems(data);
+		};
+
+		fetchItems();
+	}, []);
+
+const getCountByValue = (
+	value: string
+): number => {
+	const match = items.find((item) => item.status === value);
+	return match?.count ?? 0;
+};
+
+
 	return (
 		<div className="py-8 flex flex-col space-y-8 w-full">
 			<div className="rounded-xl border border-pink-200 bg-white shadow-lg max-w-[72rem] w-full p-6 mx-auto">
@@ -116,7 +141,7 @@ export default function Dashboard() {
 									{stage.label}
 								</Typography>
 								<Typography variant="h5" fontWeight={600}>
-									{stage.count}
+									{getCountByValue(stage.value)}
 								</Typography>
 								{/* <Chip
 									label={`$${stage.amount.toFixed(2)}`}
@@ -129,9 +154,6 @@ export default function Dashboard() {
 										color: stage.amountColor ?? 'text.primary',
 									}}
 								/> */}
-								<div className="mt-2 font-semibold bg-gray-300 bg-opacity-50 rounded-full w-fit px-4 py-2 mx-auto">
-									${stage.amount.toFixed(2)}
-								</div>
 							</div>
 							{stage !== stages[stages.length - 1] && (
 								<div className="invisible md:visible absolute top-0 right-[-1.5rem] h-full w-[3rem] bg-white [clip-path:polygon(75%_0%,100%_50%,75%_100%,0%_100%,25%_50%,0%_0%)] z-10"></div>
@@ -190,3 +212,5 @@ export default function Dashboard() {
 		</div>
 	);
 }
+
+export default Dashboard;
