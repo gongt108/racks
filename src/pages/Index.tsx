@@ -12,12 +12,15 @@ import { BsFillInfoCircleFill } from 'react-icons/bs';
 import { IoIosClose } from 'react-icons/io';
 import { BsRobot } from 'react-icons/bs';
 
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import Switch from '@mui/material/Switch';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import {
+	MenuItem,
+	Select,
+	FormControl,
+	FormControlLabel,
+	InputLabel,
+	Switch,
+	SelectChangeEvent,
+} from '@mui/material';
 
 import {
 	triggerFileInput,
@@ -79,10 +82,10 @@ const Index = () => {
 
 	const handleAddItem = async () => {
 		const {
-	  data: { user },
+			data: { user },
 		} = await supabase.auth.getUser();
 
-console.log(JSON.stringify(user, null, 2));
+		console.log(JSON.stringify(user, null, 2));
 
 		if (!user) {
 			alert('You must be logged in to add an item');

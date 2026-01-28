@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/supabaseClient';
 import { garmentTypes } from '@/constants/garmentTypes';
-import { FaBoxOpen, FaSearch, FaCalendarPlus } from 'react-icons/fa';
+import {
+	FaBoxOpen,
+	FaSearch,
+	FaCalendarPlus,
+	FaTrashAlt,
+} from 'react-icons/fa';
 import {
 	MenuItem,
 	Select,
@@ -24,30 +29,48 @@ type StatusKey = keyof typeof STATUS_OPTIONS;
 
 const Inventory = () => {
 	const [query, setQuery] = useState('');
-	// const [items, setItems] = useState<Array<any>>([1]); // Replace 'any' with your item type
-	const [items, setItems] = useState([
-		{
-			id: 1,
-			name: 'Blue Shirt',
-			status: 'available' as StatusKey,
-			img: null,
-			type: 'shirt',
-		},
-		{
-			id: 2,
-			name: 'Red Dress',
-			status: 'sold' as StatusKey,
-			img: null,
-			type: 'dress',
-		},
-		{
-			id: 3,
-			name: 'Yellow Jacket',
-			status: 'missingInfo' as StatusKey,
-			img: null,
-			type: 'jacket',
-		},
-	]);
+	const [items, setItems] = useState<Array<any>>([]); // Replace 'any' with your item type
+
+	useEffect(() => {
+		// Fetch items from Supabase or your backend here
+		const fetchItems = async () => {
+			const { data, error } = await supabase.from('items').select('*');
+			if (error) {
+				console.error(error);
+				return;
+			}
+
+			setItems(data);
+		};
+
+		fetchItems();
+	}, []);
+
+	console.log(items);
+
+	// const [items, setItems] = useState([
+	// 	{
+	// 		id: 1,
+	// 		name: 'Blue Shirt',
+	// 		status: 'available' as StatusKey,
+	// 		img: null,
+	// 		type: 'shirt',
+	// 	},
+	// 	{
+	// 		id: 2,
+	// 		name: 'Red Dress',
+	// 		status: 'sold' as StatusKey,
+	// 		img: null,
+	// 		type: 'dress',
+	// 	},
+	// 	{
+	// 		id: 3,
+	// 		name: 'Yellow Jacket',
+	// 		status: 'missingInfo' as StatusKey,
+	// 		img: null,
+	// 		type: 'jacket',
+	// 	},
+	// ]);
 
 	// Update item status
 	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {
@@ -65,6 +88,11 @@ const Inventory = () => {
 
 		const Icon = garment.icon;
 		return <Icon className="h-10 w-10 text-gray-500" />;
+	};
+
+	const triggerDeleteModal = (id) => {
+		// Implement delete modal trigger logic here
+		console.log('Trigger delete modal for item ID:', id);
 	};
 
 	return (
@@ -115,82 +143,97 @@ const Inventory = () => {
 			)}
 
 			{/* Items Grid - Hidden when empty */}
-			{/* {items.length > 0 && ( */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-				{items.map((item, id) => {
-					const status = STATUS_OPTIONS[item.status as StatusKey];
+			{items.length > 0 && (
+				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+					{items.map((item, id) => {
+						const status = STATUS_OPTIONS[item.status as StatusKey];
 
-					return (
-						<div
-							key={id}
-							className="bg-white rounded-lg shadow p-4 flex flex-col"
-						>
-							{/* Item image */}
-							<div className="h-40 w-full bg-gray-100 rounded-md mb-2 flex items-center justify-center">
-								{item.img ? (
-									<img
-										src={item.img}
-										alt={`Item ${id + 1}`}
-										className="h-full object-contain"
+						return (
+							<div
+								key={id}
+								className="bg-white rounded-lg shadow p-4 flex flex-col"
+							>
+								{/* Item image */}
+								<div className="h-40 w-full bg-gray-100 rounded-md mb-2 flex items-center justify-center">
+									{item.img_url ? (
+										<img
+											src={item.img_url}
+											alt={`Item ${id + 1}`}
+											className="h-full object-contain"
+										/>
+									) : (
+										findIcon(item.category)
+									)}
+								</div>
+
+								{/* Item info */}
+								<h2 className="text-lg font-semibold mb-1 mx-2">
+									{item.name || `Item ${id + 1}`}
+								</h2>
+								<div className="flex flex-row items-center mb-2 mx-2">
+									<FaCalendarPlus className="text-gray-400 mr-1 h-3 w-3" />
+									<div className="text-sm text-gray-500">
+										Added:{' '}
+										{new Date(item.created_at).toLocaleDateString('en-US')}
+									</div>
+								</div>
+								<div className="flex flex-row mx-2 mb-4">
+									<div className="flex flex-col w-1/2">
+										<p className="text-sm text-gray-500">Paid: </p>
+										<p className="text-sm font-semibold text-gray-500">
+											${item.purchase_price || 'N/A'}
+										</p>
+									</div>
+									<div className="flex flex-col w-1/2">
+										<p className="text-sm text-gray-500">Listed: </p>
+										<p className="text-sm font-semibold text-gray-500">
+											${item.listing_price}
+										</p>
+									</div>
+								</div>
+
+								{/* Status pill dropdown */}
+								<div className="flex flex-row justify-between items-center mx-2 mt-auto">
+									<FormControl>
+										<div
+											className={`px-3 inline-flex items-center rounded-full ${status.bgColor}`}
+										>
+											<Select
+												value={item.status as StatusKey}
+												onChange={(e) =>
+													handleStatusChange(
+														item.id,
+														e.target.value as StatusKey,
+													)
+												}
+												variant="standard"
+												disableUnderline
+												className="w-full text-white text-md cursor-pointer"
+											>
+												{Object.entries(STATUS_OPTIONS).map(
+													([key, { label, bgColor }]) => (
+														<MenuItem key={key} value={key}>
+															<div
+																className={`px-3 py-1 rounded-full text-white text-sm ${bgColor}`}
+															>
+																{label}
+															</div>
+														</MenuItem>
+													),
+												)}
+											</Select>
+										</div>
+									</FormControl>
+									<FaTrashAlt
+										onClick={() => triggerDeleteModal(item.id)}
+										className="text-red-500 w-4 h-4 cursor-pointer hover:text-red-700 transition"
 									/>
-								) : (
-									findIcon(item.type)
-								)}
-							</div>
-
-							{/* Item info */}
-							<h2 className="text-lg font-semibold mb-1 mx-2">
-								{item.name || `Item ${id + 1}`}
-							</h2>
-							<div className="flex flex-row items-center mb-2 mx-2">
-								<FaCalendarPlus className="text-gray-400 mr-1 h-3 w-3" />
-								<div className="text-sm text-gray-500">Added: </div>
-							</div>
-							<div className="flex flex-row mx-2 mb-4">
-								<div className="flex flex-col w-1/2">
-									<p className="text-sm text-gray-500">Paid: </p>
-									<p className="text-sm font-semibold text-gray-500">$7.00</p>
-								</div>
-								<div className="flex flex-col w-1/2">
-									<p className="text-sm text-gray-500">Listed: </p>
-									<p className="text-sm font-semibold text-gray-500">$27.00</p>
 								</div>
 							</div>
-
-							{/* Status pill dropdown */}
-							<FormControl>
-								<div
-									className={`mx-4 px-3 inline-flex items-center rounded-full ${status.bgColor}`}
-								>
-									<Select
-										value={item.status as StatusKey}
-										onChange={(e) =>
-											handleStatusChange(item.id, e.target.value as StatusKey)
-										}
-										variant="standard"
-										disableUnderline
-										className="w-full text-white text-md cursor-pointer"
-									>
-										{Object.entries(STATUS_OPTIONS).map(
-											([key, { label, bgColor }]) => (
-												<MenuItem key={key} value={key}>
-													<div
-														className={`px-3 py-1 rounded-full text-white text-sm ${bgColor}`}
-													>
-														{label}
-													</div>
-												</MenuItem>
-											),
-										)}
-									</Select>
-								</div>
-							</FormControl>
-						</div>
-					);
-				})}
-			</div>
-
-			{/* )} */}
+						);
+					})}
+				</div>
+			)}
 		</div>
 	);
 };
