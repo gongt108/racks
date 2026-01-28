@@ -1,39 +1,72 @@
 import { useState } from 'react';
 import { supabase } from '@/supabaseClient';
 import { garmentTypes } from '@/constants/garmentTypes';
-import { FaBoxOpen, FaSearch } from 'react-icons/fa';
-import { MenuItem, Select, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
+import { FaBoxOpen, FaSearch, FaCalendarPlus } from 'react-icons/fa';
+import {
+	MenuItem,
+	Select,
+	FormControl,
+	FormControlLabel,
+	InputLabel,
+	Switch,
+	SelectChangeEvent,
+} from '@mui/material';
 
 // Status options with hex colors for MUI
 const STATUS_OPTIONS = {
-	available: { label: 'Available', bgColor: '#16a34a', textColor: '#ffffff' },
-	sold: { label: 'Sold', bgColor: '#dc2626', textColor: '#ffffff' },
-	missingInfo: { label: 'Missing Info', bgColor: '#facc15', textColor: '#000000' },
-	reserved: { label: 'Reserved', bgColor: '#3b82f6', textColor: '#ffffff' },
+	available: { label: 'Available', bgColor: 'bg-green-600' },
+	sold: { label: 'Sold', bgColor: 'bg-red-600' },
+	missingInfo: { label: 'Missing Info', bgColor: 'bg-yellow-500' },
+	reserved: { label: 'Reserved', bgColor: 'bg-blue-600' },
 } as const;
 
 type StatusKey = keyof typeof STATUS_OPTIONS;
-	
+
 const Inventory = () => {
 	const [query, setQuery] = useState('');
 	// const [items, setItems] = useState<Array<any>>([1]); // Replace 'any' with your item type
 	const [items, setItems] = useState([
-		{ id: 1, name: 'Blue Shirt', status: 'available' as StatusKey },
-		{ id: 2, name: 'Red Dress', status: 'sold' as StatusKey },
-		{ id: 3, name: 'Yellow Jacket', status: 'missingInfo' as StatusKey },
+		{
+			id: 1,
+			name: 'Blue Shirt',
+			status: 'available' as StatusKey,
+			img: null,
+			type: 'shirt',
+		},
+		{
+			id: 2,
+			name: 'Red Dress',
+			status: 'sold' as StatusKey,
+			img: null,
+			type: 'dress',
+		},
+		{
+			id: 3,
+			name: 'Yellow Jacket',
+			status: 'missingInfo' as StatusKey,
+			img: null,
+			type: 'jacket',
+		},
 	]);
 
 	// Update item status
 	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {
 		setItems((prev) =>
-			prev.map((item) => (item.id === itemId ? { ...item, status: newStatus } : item))
+			prev.map((item) =>
+				item.id === itemId ? { ...item, status: newStatus } : item,
+			),
 		);
 	};
 
-	const findIcon = (item) => {
-		const Icon = item.icon
-		return <Icon />
-	}
+	const findIcon = (type: string) => {
+		const garment = garmentTypes.find((g) => g.value === type);
+
+		if (!garment) return null;
+
+		const Icon = garment.icon;
+		return <Icon className="h-10 w-10 text-gray-500" />;
+	};
+
 	return (
 		<div className="flex flex-col w-full h-full">
 			{/* Top Navigation Bar */}
@@ -67,7 +100,7 @@ const Inventory = () => {
 			</div>
 
 			{/* Empty State Content */}
-			<div className="flex-grow flex flex-col items-center justify-center text-center px-4 mt-8">
+			{items.length == 0 && (
 				<div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100">
 					<FaBoxOpen className="mx-auto mb-6 text-7xl text-gray-300" />
 					<h1 className="mb-2 text-3xl font-extrabold text-gray-800">
@@ -79,68 +112,83 @@ const Inventory = () => {
 						tab.
 					</p>
 				</div>
-			</div>
+			)}
 
 			{/* Items Grid - Hidden when empty */}
 			{/* {items.length > 0 && ( */}
-		<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-	{items.map((item, id) => {
-		const statusData = STATUS_OPTIONS[item.status];
+			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+				{items.map((item, id) => {
+					const status = STATUS_OPTIONS[item.status as StatusKey];
 
-		return (
-			<div key={id} className="bg-white rounded-lg shadow p-4 flex flex-col">
-				{/* Item image */}
-				<div className="h-40 w-full bg-gray-100 rounded-md mb-4 flex items-center justify-center">
-					<img src='' alt={`Item ${id + 1}`} className="h-full object-contain" />
-				</div>
+					return (
+						<div
+							key={id}
+							className="bg-white rounded-lg shadow p-4 flex flex-col"
+						>
+							{/* Item image */}
+							<div className="h-40 w-full bg-gray-100 rounded-md mb-2 flex items-center justify-center">
+								{item.img ? (
+									<img
+										src={item.img}
+										alt={`Item ${id + 1}`}
+										className="h-full object-contain"
+									/>
+								) : (
+									findIcon(item.type)
+								)}
+							</div>
 
-				{/* Item info */}
-				<h2 className="text-lg font-semibold mb-2">{item.name || `Item ${id + 1}`}</h2>
-				<p className="text-sm text-gray-500">Added: </p>
-				<p className="text-sm text-gray-500">Paid: </p>
-				<p className="text-sm text-gray-500 mb-2">Listed: </p>
+							{/* Item info */}
+							<h2 className="text-lg font-semibold mb-1 mx-2">
+								{item.name || `Item ${id + 1}`}
+							</h2>
+							<div className="flex flex-row items-center mb-2 mx-2">
+								<FaCalendarPlus className="text-gray-400 mr-1 h-3 w-3" />
+								<div className="text-sm text-gray-500">Added: </div>
+							</div>
+							<div className="flex flex-row mx-2 mb-4">
+								<div className="flex flex-col w-1/2">
+									<p className="text-sm text-gray-500">Paid: </p>
+									<p className="text-sm font-semibold text-gray-500">$7.00</p>
+								</div>
+								<div className="flex flex-col w-1/2">
+									<p className="text-sm text-gray-500">Listed: </p>
+									<p className="text-sm font-semibold text-gray-500">$27.00</p>
+								</div>
+							</div>
 
-				{/* Status badge */}
-				<span
-					className="inline-block px-3 py-1 rounded-full text-sm font-semibold mb-2"
-					style={{
-						backgroundColor: statusData.bgColor,
-						color: statusData.textColor,
-					}}
-				>
-					{statusData.label}
-				</span>
-
-				{/* Status dropdown (MUI) */}
-				<FormControl sx={{ minWidth: 120, mt: 'auto' }}>
-					<InputLabel id={`status-label-${id}`}>Status</InputLabel>
-					<Select
-						labelId={`status-label-${id}`}
-						value={item.status}
-						label="Status"
-						onChange={(e) =>
-							handleStatusChange(item.id, e.target.value as StatusKey)
-						}
-					>
-						{Object.entries(STATUS_OPTIONS).map(([key, { label, bgColor, textColor }]) => (
-							<MenuItem
-								key={key}
-								value={key}
-								sx={{
-									backgroundColor: bgColor,
-									color: textColor,
-									'&:hover': { opacity: 0.9 },
-								}}
-							>
-								{label}
-							</MenuItem>
-						))}
-					</Select>
-				</FormControl>
+							{/* Status pill dropdown */}
+							<FormControl>
+								<div
+									className={`mx-4 px-3 inline-flex items-center rounded-full ${status.bgColor}`}
+								>
+									<Select
+										value={item.status as StatusKey}
+										onChange={(e) =>
+											handleStatusChange(item.id, e.target.value as StatusKey)
+										}
+										variant="standard"
+										disableUnderline
+										className="w-full text-white text-md cursor-pointer"
+									>
+										{Object.entries(STATUS_OPTIONS).map(
+											([key, { label, bgColor }]) => (
+												<MenuItem key={key} value={key}>
+													<div
+														className={`px-3 py-1 rounded-full text-white text-sm ${bgColor}`}
+													>
+														{label}
+													</div>
+												</MenuItem>
+											),
+										)}
+									</Select>
+								</div>
+							</FormControl>
+						</div>
+					);
+				})}
 			</div>
-		);
-	})}
-</div>
 
 			{/* )} */}
 		</div>
