@@ -355,7 +355,7 @@ const Index = () => {
 								<p className="font-semibold">Purchase price ($)</p>
 								<input
 									type="text"
-									value={purchasePrice}
+									value={purchasePrice ?? ''}
 									onChange={handlePurchasePriceChange}
 									placeholder="0.00"
 									className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
