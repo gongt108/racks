@@ -160,7 +160,8 @@ const Index = () => {
 					.select()
 					.single(); // important to see the result
 
-				console.log('Updated item:', updatedItem);
+				console.log(updatedItem);
+				console.log(uploadedPhotoPaths);
 
 				if (updateError) throw updateError;
 			}
