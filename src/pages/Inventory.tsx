@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Key, useEffect, useState } from 'react';
 import { supabase } from '@/supabaseClient';
 import { garmentTypes } from '@/constants/garmentTypes';
 import {
@@ -16,6 +16,7 @@ import {
 	Switch,
 	SelectChangeEvent,
 } from '@mui/material';
+import ItemCarousel from '@/components/Carousel';
 
 // Status options with hex colors for MUI
 const STATUS_OPTIONS = {
@@ -157,17 +158,7 @@ const Inventory = () => {
 								className="bg-white rounded-lg shadow p-4 flex flex-col"
 							>
 								{/* Item image */}
-								<div className="h-40 w-full bg-gray-100 rounded-md mb-2 flex items-center justify-center">
-									{item.img_url ? (
-										<img
-											src={item.img_url}
-											alt={`Item ${id + 1}`}
-											className="h-full object-contain"
-										/>
-									) : (
-										findIcon(item.category)
-									)}
-								</div>
+								<ItemCarousel item={item} id={id} />
 
 								{/* Item info */}
 								<h2 className="text-lg font-semibold mb-1 mx-2">

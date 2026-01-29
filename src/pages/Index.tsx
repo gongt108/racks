@@ -153,15 +153,10 @@ const Index = () => {
 
 			// Update item with photo URLs
 			if (uploadedPhotoPaths.length > 0) {
-				const { data: updatedItem, error: updateError } = await supabase
+				const { error: updateError } = await supabase
 					.from('items')
 					.update({ photos: uploadedPhotoPaths })
-					.eq('id', item.id)
-					.select()
-					.single(); // important to see the result
-
-				console.log(updatedItem);
-				console.log(uploadedPhotoPaths);
+					.eq('id', item.id);
 
 				if (updateError) throw updateError;
 			}
