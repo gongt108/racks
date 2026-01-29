@@ -19,10 +19,12 @@ import {
 
 // Status options with hex colors for MUI
 const STATUS_OPTIONS = {
-	available: { label: 'Available', bgColor: 'bg-green-600' },
-	sold: { label: 'Sold', bgColor: 'bg-red-600' },
-	missingInfo: { label: 'Missing Info', bgColor: 'bg-yellow-500' },
-	reserved: { label: 'Reserved', bgColor: 'bg-blue-600' },
+	listed: { label: 'Listed', bgColor: 'bg-rose-600' },
+	sanitized: { label: 'Sanitized', bgColor: 'bg-violet-500' },
+	racked: { label: 'Racked', bgColor: 'bg-purple-600' },
+	itemized: { label: 'Itemized', bgColor: 'bg-pink-400' },
+	sold: { label: 'Sold', bgColor: 'bg-green-600' },
+	missingInfo: { label: 'Missing Info', bgColor: 'bg-red-500' },
 } as const;
 
 type StatusKey = keyof typeof STATUS_OPTIONS;
@@ -49,30 +51,6 @@ const Inventory = () => {
 	}, []);
 
 	console.log(items);
-
-	// const [items, setItems] = useState([
-	// 	{
-	// 		id: 1,
-	// 		name: 'Blue Shirt',
-	// 		status: 'available' as StatusKey,
-	// 		img: null,
-	// 		type: 'shirt',
-	// 	},
-	// 	{
-	// 		id: 2,
-	// 		name: 'Red Dress',
-	// 		status: 'sold' as StatusKey,
-	// 		img: null,
-	// 		type: 'dress',
-	// 	},
-	// 	{
-	// 		id: 3,
-	// 		name: 'Yellow Jacket',
-	// 		status: 'missingInfo' as StatusKey,
-	// 		img: null,
-	// 		type: 'jacket',
-	// 	},
-	// ]);
 
 	// Update item status
 	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {

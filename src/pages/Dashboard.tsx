@@ -95,7 +95,7 @@ const Dashboard = () => {
 
 		fetchItems();
 	}, []);
-	console.log(items);
+
 	const getCountByValue = (value: string): number => {
 		const match = items.find((item) => item.status === value);
 		return match?.count ?? 0;
