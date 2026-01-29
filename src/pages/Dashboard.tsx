@@ -70,31 +70,36 @@ const stages: Stage[] = [
 
 const Dashboard = () => {
 	const [items, setItems] = useState<Array<any>>([]); // Replace 'any' with your item type
-useEffect(() => {
+	useEffect(() => {
 		// Fetch items from Supabase or your backend here
 		const fetchItems = async () => {
-			const { data, error } = await supabase
-	.from('items')
-	.select('status, count:status')
+			const { data, error } = await supabase.from('items').select('status');
 
 			if (error) {
 				console.error(error);
 				return;
 			}
 
-			setItems(data);
+			const statusCount = data.reduce((acc: any, item: any) => {
+				acc[item.status] = (acc[item.status] || 0) + 1;
+				return acc;
+			}, {});
+
+			const formattedData = Object.keys(statusCount).map((key) => ({
+				status: key,
+				count: statusCount[key],
+			}));
+
+			setItems(formattedData);
 		};
 
 		fetchItems();
 	}, []);
-console.log(items);
-const getCountByValue = (
-	value: string
-): number => {
-	const match = items.find((item) => item.status === value);
-	return match?.count ?? 0;
-};
-
+	console.log(items);
+	const getCountByValue = (value: string): number => {
+		const match = items.find((item) => item.status === value);
+		return match?.count ?? 0;
+	};
 
 	return (
 		<div className="py-8 flex flex-col space-y-8 w-full">
@@ -209,6 +214,6 @@ const getCountByValue = (
 			</div>
 		</div>
 	);
-}
+};
 
 export default Dashboard;
