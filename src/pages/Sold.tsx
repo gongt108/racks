@@ -14,9 +14,9 @@ const Inventory = () => {
   useEffect(() => {
     const fetchAndHydrate = async () => {
       const { data, error } = await supabase
-  .from('items')
-  .select('*')
-  .eq('status', 'sold');
+        .from('items')
+        .select('*')
+        .eq('status', 'sold');
 
 
       if (error || !data) {
@@ -41,6 +41,7 @@ const Inventory = () => {
           return {
             ...item,
             photoUrls: photoUrls.filter(Boolean),
+            profit: item.listing_price - item.purchase_price
           };
         })
       );
@@ -105,13 +106,9 @@ const Inventory = () => {
       {/* Empty State */}
       {items.length === 0 && (
         <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 mx-6 mt-6 text-center">
-          <FaBoxOpen className="mx-auto mb-6 text-7xl text-gray-300" />
           <h1 className="mb-2 text-3xl font-extrabold text-gray-800">
-            No items in inventory
+            No analytics available yet. 
           </h1>
-          <p className="text-lg text-gray-500 max-w-md mx-auto">
-            Add your first item using the <span className="font-semibold text-blue-600">Add Item</span> tab.
-          </p>
         </div>
       )}
 
