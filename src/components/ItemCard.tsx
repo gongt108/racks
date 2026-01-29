@@ -19,7 +19,7 @@ import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
 
 
 const ItemCard = ({item, handleStatusChange, triggerDeleteModal}) => {
-
+				const status = STATUS_OPTIONS[item.status as StatusKey];
 
     return (
         <div
