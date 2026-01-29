@@ -1,34 +1,13 @@
 import { Key, useEffect, useState } from 'react';
 import { supabase } from '@/supabaseClient';
-import { garmentTypes } from '@/constants/garmentTypes';
 import {
 	FaBoxOpen,
 	FaSearch,
 	FaCalendarPlus,
 	FaTrashAlt,
 } from 'react-icons/fa';
-import {
-	MenuItem,
-	Select,
-	FormControl,
-	FormControlLabel,
-	InputLabel,
-	Switch,
-	SelectChangeEvent,
-} from '@mui/material';
+
 import ItemCard from '@/components/ItemCard';
-
-// Status options with hex colors for MUI
-const STATUS_OPTIONS = {
-	listed: { label: 'Listed', bgColor: 'bg-rose-600' },
-	sanitized: { label: 'Sanitized', bgColor: 'bg-violet-500' },
-	racked: { label: 'Racked', bgColor: 'bg-purple-600' },
-	itemized: { label: 'Itemized', bgColor: 'bg-pink-400' },
-	sold: { label: 'Sold', bgColor: 'bg-green-600' },
-	missingInfo: { label: 'Missing Info', bgColor: 'bg-red-500' },
-} as const;
-
-type StatusKey = keyof typeof STATUS_OPTIONS;
 
 const Inventory = () => {
 	const [query, setQuery] = useState('');
@@ -81,15 +60,6 @@ const Inventory = () => {
 				item.id === itemId ? { ...item, status: newStatus } : item,
 			),
 		);
-	};
-
-	const findIcon = (type: string) => {
-		const garment = garmentTypes.find((g) => g.value === type);
-
-		if (!garment) return null;
-
-		const Icon = garment.icon;
-		return <Icon className="h-10 w-10 text-gray-500" />;
 	};
 
 	const triggerDeleteModal = (item) => {
