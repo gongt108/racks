@@ -18,7 +18,7 @@ import {
 import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
 
 
-const ItemCard = (item) => {
+const ItemCard = ({item, handleStatusChange, triggerDeleteModal}) => {
 
 
     return (
