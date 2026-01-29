@@ -123,7 +123,7 @@ const Index = () => {
 						custom_tags: singleItem.customTags.length
 							? singleItem.customTags
 							: null,
-						status: 'available',
+						status: 'itemized',
 						photos: [], // filled after upload
 					},
 				])
@@ -133,7 +133,7 @@ const Index = () => {
 			if (itemError || !item) throw itemError;
 
 			// Upload photos to Supabase Storage
-			const uploadedPhotoUrls: string[] = [];
+			const uploadedPhotoPaths: string[] = [];
 
 			for (const photo of photos) {
 				const filePath = `${user.id}/${item.id}/${crypto.randomUUID()}`;
@@ -144,19 +144,23 @@ const Index = () => {
 
 				if (uploadError) throw uploadError;
 
-				const { data: publicUrlData } = supabase.storage
-					.from('item-photos')
-					.getPublicUrl(filePath);
+				// const { data: publicUrlData } = supabase.storage
+				// 	.from('item-photos')
+				// 	.getPublicUrl(filePath);
 
-				uploadedPhotoUrls.push(publicUrlData.publicUrl);
+				uploadedPhotoPaths.push(filePath);
 			}
 
 			// Update item with photo URLs
-			if (uploadedPhotoUrls.length > 0) {
-				const { error: updateError } = await supabase
+			if (uploadedPhotoPaths.length > 0) {
+				const { data: updatedItem, error: updateError } = await supabase
 					.from('items')
-					.update({ photos: uploadedPhotoUrls })
-					.eq('id', item.id);
+					.update({ photos: uploadedPhotoPaths })
+					.eq('id', item.id)
+					.select()
+					.single(); // important to see the result
+
+				console.log('Updated item:', updatedItem);
 
 				if (updateError) throw updateError;
 			}

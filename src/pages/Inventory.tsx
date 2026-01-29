@@ -36,18 +36,39 @@ const Inventory = () => {
 	const [itemToDelete, setItemToDelete] = useState(null);
 
 	useEffect(() => {
-		// Fetch items from Supabase or your backend here
-		const fetchItems = async () => {
+		const fetchAndHydrate = async () => {
 			const { data, error } = await supabase.from('items').select('*');
-			if (error) {
+
+			if (error || !data) {
 				console.error(error);
 				return;
 			}
 
-			setItems(data);
+			const itemsWithPhotos = await Promise.all(
+				data.map(async (item) => {
+					if (item.photos == 0) return item;
+
+					const photoUrls = await Promise.all(
+						item.photos.map(async (path: string) => {
+							const { data } = await supabase.storage
+								.from('item-photos')
+								.createSignedUrl(path, 60 * 60);
+
+							return data?.signedUrl ?? null;
+						}),
+					);
+
+					return {
+						...item,
+						photoUrls: photoUrls.filter(Boolean),
+					};
+				}),
+			);
+
+			setItems(itemsWithPhotos);
 		};
 
-		fetchItems();
+		fetchAndHydrate();
 	}, []);
 
 	console.log(items);
