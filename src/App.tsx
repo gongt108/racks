@@ -8,6 +8,7 @@ import AuthLayout from './layouts/AuthLayout';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Inventory from './pages/Inventory';
+import Sold from './pages/Sold';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
@@ -32,6 +33,7 @@ function App() {
 						<Route element={<MainLayout />}>
 							<Route path="/" element={<Index />} />
 							<Route path="/inventory" element={<Inventory />} />
+							<Route path="/sold" element={<Sold />} />
 							<Route path="/dashboard" element={<Dashboard />} />
 							<Route path="/settings" element={<Settings />} />
 							<Route path="/profile" element={<Profile />} />
