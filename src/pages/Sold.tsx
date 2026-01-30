@@ -3,9 +3,10 @@ import { supabase } from '@/supabaseClient';
 import { FaSearch } from 'react-icons/fa';
 
 import ItemCard from '@/components/ItemCard';
-import ItemCarousel from '@/components/Carousel';
+import ItemCarousel from '@/components/ItemCarousel';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { StatusKey } from '@/constants/statusOptions';
+import { findIcon } from '@/utils/findIcon';
 
 // ✅ Correct type: values are Item[], not string[]
 type CategorizedItems = {
@@ -14,9 +15,8 @@ type CategorizedItems = {
 
 const Sold = () => {
 	const [query, setQuery] = useState('');
-	const [categorizedItems, setCategorizedItems] = useState<CategorizedItems>(
-		{},
-	);
+	const [items, setItems] = useState<any[]>([]);
+	const [categories, setCategories] = useState<string[]>([]);
 	// const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
 
 	useEffect(() => {
@@ -31,60 +31,46 @@ const Sold = () => {
 				return;
 			}
 
-			const itemsByCategory: CategorizedItems = {};
+			const existingCategories = new Set<string>();
+			let totalProfit = 0;
 
-			await Promise.all(
+			const itemsWithPhotos = await Promise.all(
 				data.map(async (item) => {
-					let photoUrls: string[] = [];
+					existingCategories.add(item.category);
+					const profit =
+						item.listing_price && item.purchase_price
+							? item.listing_price - item.purchase_price
+							: 0;
+					(totalProfit as any) += profit;
 
-					if (item.photos?.length) {
-						const signedUrls = await Promise.all(
-							item.photos.map(async (path: string) => {
-								const { data } = await supabase.storage
-									.from('item-photos')
-									.createSignedUrl(path, 60 * 60);
+					if (!item.photos?.length) return { ...item, profit };
 
-								return data?.signedUrl ?? null;
-							}),
-						);
+					const photoUrls = await Promise.all(
+						item.photos.map(async (path: string) => {
+							const { data } = await supabase.storage
+								.from('item-photos')
+								.createSignedUrl(path, 60 * 60);
 
-						photoUrls = signedUrls.filter(Boolean) as string[];
-					}
+							return data?.signedUrl ?? null;
+						}),
+					);
 
-					const category = item.category || 'uncategorized';
-
-					const enrichedItem = {
+					return {
 						...item,
-						photoUrls,
-						profit:
-							item.listing_price && item.purchase_price
-								? item.listing_price - item.purchase_price
-								: 0,
+						photoUrls: photoUrls.filter(Boolean),
+						profit,
 					};
-
-					if (!itemsByCategory[category]) {
-						itemsByCategory[category] = [];
-					}
-
-					itemsByCategory[category].push(enrichedItem);
 				}),
 			);
 
-			// ✅ FIXED: correct setter
-			setCategorizedItems(itemsByCategory);
+			setItems(itemsWithPhotos);
+			setCategories(Array.from(existingCategories));
 		};
 
 		fetchAndHydrate();
 	}, []);
 
-	// ✅ Count derived from state (re-runs on render)
-	const soldCount = (items: CategorizedItems): number => {
-		return Object.values(items).reduce((total, arr) => total + arr.length, 0);
-	};
-
-	Object.entries(categorizedItems).map(([category, items]) =>
-		items.map((item) => console.log(item)),
-	);
+	console.log(items);
 
 	// Update item status (local only for analytics)
 	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {
@@ -95,8 +81,6 @@ const Sold = () => {
 	// const triggerDeleteModal = (item: Item) => {
 	// 	setItemToDelete(item);
 	// };
-
-	const hasItems = Object.keys(categorizedItems).length > 0;
 
 	return (
 		<div className="flex flex-col w-full h-full relative">
@@ -123,7 +107,7 @@ const Sold = () => {
 			</div>
 
 			{/* Empty State */}
-			{!hasItems && (
+			{!items.length && (
 				<div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 mx-6 mt-6 text-center">
 					<h1 className="mb-2 text-3xl font-extrabold text-gray-800">
 						No analytics available yet
@@ -135,20 +119,18 @@ const Sold = () => {
 			)}
 
 			{/* Grouped Items */}
-			{hasItems && (
+			{items.length > 0 && (
 				<div className="max-w-[72rem] w-full mx-auto mt-4">
 					<div className="flex md:flex-row justify-between text-xl font-semibold mb-4 px-6 pt-6">
-						<h2>Items Sold: {soldCount(categorizedItems)}</h2>
+						<h2>Items Sold: {items.length}</h2>
 						<h2>
 							Total profits: $
-							{Object.values(categorizedItems)
-								.flat()
-								.reduce((sum, item) => sum + item.profit, 0)}
+							{items.reduce((sum, item) => sum + item.profit, 0).toFixed(2)}
 						</h2>
 					</div>
 
 					<div className="flex flex-col space-y-4">
-						{Object.entries(categorizedItems).map(([category, items]) => (
+						{categories.map((category) => (
 							<div
 								key={category}
 								className="border rounded-lg p-4 shadow-sm bg-white"
@@ -159,19 +141,30 @@ const Sold = () => {
 								</h2>
 								{/* Map through items array */}
 								<ul className="space-y-2">
-									{items.map((item, id) => (
-										<li key={id} className="flex text-gray-700">
-											<div className="h-20 w-20">
-												<img
-													src={item.photoUrls?.[0] || ''}
-													alt="Item"
-													className="object-cover h-full w-full rounded-md border"
-												/>
-											</div>
-											<span>{item.purchase_price}</span>
-											<span>${item.listing_price}</span>
-										</li>
-									))}
+									{items
+										.filter((item) => item.category === category)
+										.map((item, id) => (
+											<li
+												key={id}
+												className="flex space-x-2 items-center text-gray-700"
+											>
+												<div className="h-20 w-20">
+													{item.photoUrls?.[0] ? (
+														<img
+															src={item.photoUrls[0]}
+															alt={item.id}
+															className="object-cover h-full w-full"
+														/>
+													) : (
+														<div className="h-20 w-20 rounded-lg bg-blue-100 flex items-center justify-center">
+															{findIcon(item.category)}
+														</div>
+													)}
+												</div>
+												<div>{item.purchase_price}</div>
+												<div>${item.listing_price}</div>
+											</li>
+										))}
 								</ul>
 							</div>
 						))}

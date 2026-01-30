@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useCallback } from 'react';
-import ItemCarousel from '@/components/Carousel';
+import ItemCarousel from './ItemCarousel';
 import { FaCalendarPlus, FaTrashAlt } from 'react-icons/fa';
 import { MenuItem, Select, FormControl } from '@mui/material';
 import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
