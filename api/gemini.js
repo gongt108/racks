@@ -1,42 +1,47 @@
 import { GoogleGenAI } from "@google/genai";
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+// Initialize the API
+const genAI = new GoogleGenAI("YOUR_API_KEY");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-  const { image, mimeType, prompt } = req.body;
-  const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
-  
-  // Use Gemini 1.5 Flash for vision tasks
-  const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash",
-    generationConfig: { responseMimeType: "application/json" } // Force JSON output
-  });
+async function processImages(fileList) {
+  // 1. Convert File objects to the GoogleGenAI inlineData format
+  const imageParts = await Promise.all(
+    Array.from(fileList).map(fileToGenerativePart)
+  );
+
+  const prompt = "Identify the item in each image. Return a structured list with the item name and a brief description.";
 
   try {
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: image,
-          mimeType: mimeType
-        }
-      }
-    ]);
-
-    const output = JSON.parse(result.response.text());
-    res.status(200).json({ data: output });
+    // 2. Send the array of images + the prompt
+    const result = await model.generateContent([prompt, ...imageParts]);
+    const response = await result.response;
+    console.log(response.text());
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to process image" });
+    console.error("Error identifying items:", error);
   }
 }
 
-async function askAI(userPrompt) {
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: userPrompt }),
+// Helper function to convert a browser File object to Base64
+async function fileToGenerativePart(file) {
+  const base64EncodedDataPromise = new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.readAsDataURL(file);
   });
-  const data = await response.json();
-  console.log(data.text);
+
+  return {
+    inlineData: {
+      data: await base64EncodedDataPromise,
+      mimeType: file.type
+    },
+  };
 }
+
+// Example usage with an <input type="file" multiple id="fileInput">
+const fileInput = document.querySelector('#fileInput');
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length > 0) {
+    processImages(e.target.files);
+  }
+});
