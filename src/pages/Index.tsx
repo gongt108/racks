@@ -81,6 +81,37 @@ const Index = () => {
 		}));
 	};
 
+	const scanWithAI = async (e) => {
+    try {
+      // 1. Convert files to Base64 (Local Browser Processing)
+      const imagePromises = Array.from(photos).map((file) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve({
+            data: (reader.result as string).split(',')[1],
+            mimeType: file.type,
+          });
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const base64Images = await Promise.all(imagePromises);
+
+      // 2. Call your API route
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: base64Images }),
+      });
+
+      const data = await response.json();
+      console.log(data.text);
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      setResult("Error identifying items.");
+    }
+  };
+
 	const handleAddItem = async () => {
 		const {
 			data: { user },
@@ -274,7 +305,7 @@ const Index = () => {
 							<div className="flex flex-row justify-between mx-2 my-2 items-center">
 								<h2 className="font-semibold">Photos</h2>
 								<div
-									onClick={() => setIsAnalyzing(true)}
+									onClick={scanwithAI}
 									className=" flex flex-row items-center rounded-lg bg-gray-200 text-grey-300 px-2 py-1 text-gray-500 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md font-semibold cursor-pointer"
 								>
 									<BsRobot className="h-4 w-4 mr-2" />
