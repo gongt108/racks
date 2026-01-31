@@ -77,6 +77,14 @@ const Sold = () => {
 		console.log(`Change status of item ${itemId} to ${newStatus}`);
 	};
 
+	const cycleTime = (item: any) => {
+		const listedDate = new Date(item.date_listed);
+		const soldDate = new Date(item.date_sold);
+		const diffTime = Math.abs(soldDate.getTime() - listedDate.getTime());
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+		return `${diffDays} days`;
+	};
+
 	// Open delete modal
 	// const triggerDeleteModal = (item: Item) => {
 	// 	setItemToDelete(item);
@@ -161,8 +169,18 @@ const Sold = () => {
 														</div>
 													)}
 												</div>
-												<div>{item.purchase_price}</div>
-												<div>${item.listing_price}</div>
+												<div className="flex flex-col">
+													<div>
+														Date listed:{' '}
+														{new Date(item.created_at).toLocaleDateString(
+															'en-US',
+														)}
+													</div>
+													<div>Date Listed: {item.date_listed}</div>
+													<div>Date Sold: {item.date_sold}</div>
+													<div>Cycle Time: {cycleTime(item)}</div>
+													<div>Profit: ${item.profit.toFixed(2)}</div>
+												</div>
 											</li>
 										))}
 								</ul>
