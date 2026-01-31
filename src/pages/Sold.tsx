@@ -1,6 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/supabaseClient';
 import { FaSearch } from 'react-icons/fa';
+import {
+	ResponsiveContainer,
+	BarChart,
+	Bar,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+} from 'recharts';
 
 import ItemCard from '@/components/ItemCard';
 import ItemCarousel from '@/components/ItemCarousel';
@@ -18,6 +27,11 @@ const Sold = () => {
 	const [items, setItems] = useState<any[]>([]);
 	const [categories, setCategories] = useState<string[]>([]);
 	// const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
+	const [expandedCategories, setExpandedCategories] = useState<
+		Record<string, boolean>
+	>({});
+
+	const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
 	useEffect(() => {
 		const fetchAndHydrate = async () => {
@@ -77,6 +91,49 @@ const Sold = () => {
 		console.log(`Change status of item ${itemId} to ${newStatus}`);
 	};
 
+	const totalProfit = items.reduce((sum, item) => sum + item.profit, 0);
+
+	const totalProfitByCategory = (category: string) =>
+		items
+			.filter((item) => item.category === category)
+			.reduce((sum, item) => sum + item.profit, 0);
+
+	const avgCycleTimeByCategory = (category: string) => {
+		const categoryItems = items.filter((item) => item.category === category);
+
+		if (categoryItems.length === 0) return 0;
+
+		const totalDays = categoryItems.reduce(
+			(sum, item) => sum + cycleTime(item),
+			0,
+		);
+
+		return Math.round(totalDays / categoryItems.length);
+	};
+
+	const toggleCategory = (category: string) => {
+		setExpandedCategories((prev) => ({
+			...prev,
+			[category]: !prev[category],
+		}));
+	};
+
+	const expandAndScrollToCategory = (category: string) => {
+		// expand it
+		setExpandedCategories((prev) => ({
+			...prev,
+			[category]: true,
+		}));
+
+		// scroll to it (after state update)
+		setTimeout(() => {
+			categoryRefs.current[category]?.scrollIntoView({
+				behavior: 'smooth',
+				block: 'start',
+			});
+		}, 100);
+	};
+
 	const cycleTime = (item: any) => {
 		const listedDate = new Date(item.date_listed);
 		const soldDate = new Date(item.date_sold);
@@ -128,64 +185,145 @@ const Sold = () => {
 
 			{/* Grouped Items */}
 			{items.length > 0 && (
-				<div className="max-w-[72rem] w-full mx-auto mt-4">
-					<div className="flex md:flex-row justify-between text-xl font-semibold mb-4 px-6 pt-6">
-						<h2>Items Sold: {items.length}</h2>
-						<h2>
-							Total profits: $
-							{items.reduce((sum, item) => sum + item.profit, 0).toFixed(2)}
-						</h2>
+				<div className="max-w-[72rem] w-full mx-auto mt-6 px-4 space-y-6">
+					{/* 🌸 Summary Cards */}
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white rounded-2xl p-6 shadow">
+							<p className="text-sm opacity-80">Items Sold</p>
+							<h2 className="text-3xl font-bold">{items.length}</h2>
+						</div>
+
+						<div className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-2xl p-6 shadow">
+							<p className="text-sm opacity-80">Total Profit</p>
+							<h2 className="text-3xl font-bold">${totalProfit.toFixed(2)}</h2>
+						</div>
 					</div>
 
-					<div className="flex flex-col space-y-4">
-						{categories.map((category) => (
-							<div
-								key={category}
-								className="border rounded-lg p-4 shadow-sm bg-white"
-							>
-								{/* Category Title */}
-								<h2 className="text-xl font-semibold capitalize mb-3">
-									{category}
-								</h2>
-								{/* Map through items array */}
-								<ul className="space-y-2">
-									{items
-										.filter((item) => item.category === category)
-										.map((item, id) => (
-											<li
-												key={id}
-												className="flex space-x-2 items-center text-gray-700"
+					{/* 📊 Profit Chart */}
+					<div className="bg-white rounded-2xl p-6 shadow">
+						<h3 className="text-lg font-semibold mb-4">Profit by Category</h3>
+
+						<div className="w-full h-64">
+							<ResponsiveContainer width="100%" height="100%">
+								<BarChart
+									data={categories.map((category) => ({
+										category,
+										profit: totalProfitByCategory(category),
+									}))}
+									onClick={(state) => {
+										const label = state?.activeLabel;
+
+										if (typeof label === 'string') {
+											expandAndScrollToCategory(label);
+										}
+									}}
+								>
+									<CartesianGrid strokeDasharray="3 3" />
+									<XAxis dataKey="category" />
+									<YAxis />
+									<Tooltip />
+									<Bar dataKey="profit" fill="#6366f1" radius={[6, 6, 0, 0]} />
+								</BarChart>
+							</ResponsiveContainer>
+						</div>
+					</div>
+
+					{/* 🧺 Category Cards */}
+					<div className="max-w-[72rem] mx-auto space-y-6 px-4">
+						{categories.map((category) => {
+							const isExpanded = expandedCategories[category];
+
+							return (
+								<div
+									key={category}
+									ref={(el) => {
+										categoryRefs.current[category] = el;
+									}}
+									className="bg-white rounded-2xl border shadow-sm"
+								>
+									{/* 🧾 Category Header */}
+									<button
+										onClick={() => toggleCategory(category)}
+										className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition rounded-2xl"
+									>
+										<div className="flex flex-col text-left">
+											<h2 className="text-xl font-semibold capitalize">
+												{category}
+											</h2>
+											<p className="text-sm text-gray-500">
+												Avg cycle: {avgCycleTimeByCategory(category)} days
+											</p>
+										</div>
+
+										<div className="flex items-center gap-6">
+											<div className="text-right">
+												<p className="text-sm text-gray-500">Total Profit</p>
+												<p className="text-lg font-semibold text-emerald-600">
+													${totalProfitByCategory(category).toFixed(2)}
+												</p>
+											</div>
+
+											{/* Chevron */}
+											<span
+												className={`transform transition-transform ${
+													isExpanded ? 'rotate-180' : ''
+												}`}
 											>
-												<div className="h-20 w-20">
-													{item.photoUrls?.[0] ? (
-														<img
-															src={item.photoUrls[0]}
-															alt={item.id}
-															className="object-cover h-full w-full"
-														/>
-													) : (
-														<div className="h-20 w-20 rounded-lg bg-blue-100 flex items-center justify-center">
-															{findIcon(item.category)}
+												⌄
+											</span>
+										</div>
+									</button>
+
+									{/* 📦 Items Grid (Expandable) */}
+									{isExpanded && (
+										<div className="px-6 pb-6">
+											<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+												{items
+													.filter((item) => item.category === category)
+													.map((item) => (
+														<div
+															key={item.id}
+															className="bg-gray-50 rounded-xl border p-4 space-y-3 hover:shadow transition"
+														>
+															{/* Image / Icon */}
+															<div className="h-32 w-full rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+																{item.photoUrls?.[0] ? (
+																	<img
+																		src={item.photoUrls[0]}
+																		alt={item.id}
+																		className="object-cover h-full w-full"
+																	/>
+																) : (
+																	findIcon(item.category)
+																)}
+															</div>
+
+															{/* Item Info */}
+															<div className="text-sm space-y-1">
+																<div className="font-medium">
+																	Profit:{' '}
+																	<span className="text-emerald-600">
+																		${item.profit.toFixed(2)}
+																	</span>
+																</div>
+																<div className="text-gray-500">
+																	Cycle: {cycleTime(item)} days
+																</div>
+																<div className="text-gray-400 text-xs">
+																	Sold:{' '}
+																	{new Date(
+																		item.date_sold,
+																	).toLocaleDateString()}
+																</div>
+															</div>
 														</div>
-													)}
-												</div>
-												<div className="flex flex-col">
-													<div>
-														Date listed:{' '}
-														{new Date(item.created_at).toLocaleDateString(
-															'en-US',
-														)}
-													</div>
-													<div>Date Listed: {item.date_listed}</div>
-													<div>Date Sold: {item.date_sold}</div>
-													<div>Cycle Time: {cycleTime(item)}</div>
-													<div>Profit: ${item.profit.toFixed(2)}</div>
-												</div>
-											</li>
-										))}
-								</ul>
-							</div>
-						))}
+													))}
+											</div>
+										</div>
+									)}
+								</div>
+							);
+						})}
 					</div>
 				</div>
 			)}
