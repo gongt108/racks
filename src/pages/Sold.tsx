@@ -23,6 +23,7 @@ type CategorizedItems = {
 };
 
 const Sold = () => {
+	const [isLoading, setIsLoading] = useState(true);
 	const [query, setQuery] = useState('');
 	const [items, setItems] = useState<any[]>([]);
 	const [categories, setCategories] = useState<string[]>([]);
@@ -79,6 +80,7 @@ const Sold = () => {
 
 			setItems(itemsWithPhotos);
 			setCategories(Array.from(existingCategories));
+			setIsLoading(false);
 		};
 
 		fetchAndHydrate();
@@ -170,9 +172,15 @@ const Sold = () => {
 					</div>
 				</div>
 			</div>
+			{/* Loading State */}
+			{isLoading && (
+				<div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 mx-6 mt-6 text-center">
+					<p className="text-gray-500">Loading analytics...</p>
+				</div>
+			)}
 
 			{/* Empty State */}
-			{!items.length && (
+			{!items.length && !isLoading && (
 				<div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 mx-6 mt-6 text-center">
 					<h1 className="mb-2 text-3xl font-extrabold text-gray-800">
 						No analytics available yet
@@ -184,7 +192,7 @@ const Sold = () => {
 			)}
 
 			{/* Grouped Items */}
-			{items.length > 0 && (
+			{items.length > 0 && !isLoading && (
 				<div className="max-w-[72rem] w-full mx-auto mt-6 px-4 space-y-6">
 					{/* 🌸 Summary Cards */}
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
