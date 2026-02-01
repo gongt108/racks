@@ -84,7 +84,7 @@ const Index = () => {
 	const scanWithAI = async () => {
     if (photos.length === 0) return;
 
-    isAnalyzing(true);
+    setIsAnalyzing(true);
 
     try {
       // 1. Convert your PhotoItem array into the Base64 format for Gemini
@@ -114,7 +114,7 @@ const Index = () => {
     } catch (error) {
       console.error("Error:", error);
     } finally {
-      isAnalyzing(false);
+      setIsAnalyzing(false);
     }
   };
 
