@@ -81,23 +81,28 @@ const Index = () => {
 		}));
 	};
 
-	const scanWithAI = async (e) => {
+	const scanWithAI = async () => {
+    if (photos.length === 0) return;
+
+    isAnalyzing(true);
+
     try {
-      // 1. Convert files to Base64 (Local Browser Processing)
-      const imagePromises = Array.from(photos).map((file) => {
+      // 1. Convert your PhotoItem array into the Base64 format for Gemini
+      const imagePromises = photos.map((photo) => {
         return new Promise((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve({
+            // reader.result is the full DataURL; we only want the base64 part after the comma
             data: (reader.result as string).split(',')[1],
-            mimeType: file.type,
+            mimeType: photo.file.type,
           });
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(photo.file);
         });
       });
 
       const base64Images = await Promise.all(imagePromises);
 
-      // 2. Call your API route
+      // 2. Send the batch to your local API route
       const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,8 +112,9 @@ const Index = () => {
       const data = await response.json();
       console.log(data.text);
     } catch (error) {
-      console.error("Analysis failed:", error);
-      setResult("Error identifying items.");
+      console.error("Error:", error);
+    } finally {
+      isAnalyzing(false);
     }
   };
 
@@ -305,7 +311,7 @@ const Index = () => {
 							<div className="flex flex-row justify-between mx-2 my-2 items-center">
 								<h2 className="font-semibold">Photos</h2>
 								<div
-									onClick={scanwithAI}
+									onClick={scanWithAI}
 									className=" flex flex-row items-center rounded-lg bg-gray-200 text-grey-300 px-2 py-1 text-gray-500 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md font-semibold cursor-pointer"
 								>
 									<BsRobot className="h-4 w-4 mr-2" />
