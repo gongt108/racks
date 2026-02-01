@@ -35,6 +35,7 @@ const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
 	const [purchasePrice, setPurchasePrice] = useState<number | null>(null);
 	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
+	const [customTags, setCustomTags] = useState<string>('');
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
 	const [singleItem, setSingleItem] = useState({
 		photos: [] as File[],
@@ -120,9 +121,7 @@ const Index = () => {
 						listing_price: listingPrice,
 						source: singleItem.source || null,
 						description: singleItem.description || null,
-						custom_tags: singleItem.customTags.length
-							? singleItem.customTags
-							: null,
+						custom_tags: customTags.trim().length ? customTags.split(', ') : '',
 						status: 'itemized',
 						photos: [], // filled after upload
 					},
@@ -443,10 +442,8 @@ const Index = () => {
 							<p className="font-semibold">Custom Tags (optional)</p>
 							<input
 								type="text"
-								value={singleItem.customTags}
-								onChange={(e) =>
-									handleOptionalInfoChange('customTags', e.target.value)
-								}
+								value={customTags}
+								onChange={(e) => setCustomTags(e.target.value)}
 								placeholder="e.g. vintage, summer, etc."
 								className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 							/>

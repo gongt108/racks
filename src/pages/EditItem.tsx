@@ -84,16 +84,15 @@ const EditItem = () => {
 			console.error('Error updating item:', error);
 			return;
 		}
-		setItems((prev) =>
-			prev.map((item) => (item.id === itemId ? { ...item, ...data } : item)),
-		);
+		setUpdateditem(data);
+		toast.success('Item updated successfully!');
 	};
 
 	// Confirm delete
 	const handleDelete = async () => {
-		if (!item) return;
+		if (!updatedItem) return;
 
-		await supabase.from('items').delete().eq('id', item.id);
+		await supabase.from('items').delete().eq('id', itemId);
 	};
 
 	return (
