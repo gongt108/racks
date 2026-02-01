@@ -110,6 +110,7 @@ const Index = () => {
       });
 
       const data = await response.json();
+						console.log("image analyzed");
       console.log(data.text);
     } catch (error) {
       console.error("Error:", error);
