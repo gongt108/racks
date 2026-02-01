@@ -15,10 +15,8 @@ export default async function handler(req, res) {
 
   try {
     const result = await model.generateContent([
-      prompt,
-      ...images.map(img => ({
-        inlineData: { mimeType: img.mimeType, data: img.data }
-      }))
+  "Identify these items:",
+  ...images.map(img => ({ inlineData: img }))
     ]);
     
     res.status(200).json({ text: result.response.text() });
