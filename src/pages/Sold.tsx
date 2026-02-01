@@ -17,11 +17,17 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import { StatusKey } from '@/constants/statusOptions';
 import { findIcon } from '@/utils/findIcon';
 
+// ✅ Correct type: values are Item[], not string[]
+type CategorizedItems = {
+	[key: string]: Object[];
+};
+
 const Sold = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [query, setQuery] = useState('');
 	const [items, setItems] = useState<any[]>([]);
 	const [categories, setCategories] = useState<string[]>([]);
+	// const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
 	const [expandedCategories, setExpandedCategories] = useState<
 		Record<string, boolean>
 	>({});
@@ -80,6 +86,13 @@ const Sold = () => {
 		fetchAndHydrate();
 	}, []);
 
+	console.log(items);
+
+	// Update item status (local only for analytics)
+	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {
+		console.log(`Change status of item ${itemId} to ${newStatus}`);
+	};
+
 	const totalProfit = items.reduce((sum, item) => sum + item.profit, 0);
 
 	const totalProfitByCategory = (category: string) =>
@@ -130,6 +143,11 @@ const Sold = () => {
 		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 		return `${diffDays} days`;
 	};
+
+	// Open delete modal
+	// const triggerDeleteModal = (item: Item) => {
+	// 	setItemToDelete(item);
+	// };
 
 	return (
 		<div className="flex flex-col w-full h-full relative">
@@ -241,7 +259,7 @@ const Sold = () => {
 												{category}
 											</h2>
 											<p className="text-sm text-gray-500">
-												Avg cycle: {avgCycleTimeByCategory(category)}
+												Avg cycle: {avgCycleTimeByCategory(category)} days
 											</p>
 										</div>
 
@@ -317,6 +335,19 @@ const Sold = () => {
 					</div>
 				</div>
 			)}
+
+			{/* Delete Confirmation */}
+			{/* <ConfirmModal
+				isOpen={!!itemToDelete}
+				title="Delete this item?"
+				description={`Are you sure you want to remove ${
+					itemToDelete?.name || `Item ${itemToDelete?.id}`
+				}? This action can’t be undone.`}
+				confirmText="Yes, delete 💔"
+				cancelText="Never mind 💭"
+				onConfirm={handleDelete}
+				onCancel={() => setItemToDelete(null)}
+			/> */}
 		</div>
 	);
 };
