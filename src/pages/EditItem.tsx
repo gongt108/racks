@@ -102,7 +102,9 @@ const EditItem = () => {
 					<p>Loading item details...</p>
 				</div>
 			) : (
-				<SingleItemInfoCard item={updatedItem} />
+				<div className="p-6 w-full max-w-[48rem] mx-auto">
+					<SingleItemInfoCard item={updatedItem} />
+				</div>
 			)}
 		</div>
 	);

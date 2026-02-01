@@ -104,8 +104,6 @@ const Index = () => {
 			return;
 		}
 
-		setIsAnalyzing(true);
-
 		try {
 			const listingPrice = autoPricingChecked
 				? Number((purchasePrice * 2).toFixed(2))
@@ -179,8 +177,6 @@ const Index = () => {
 		} catch (err) {
 			console.error(err.message);
 			alert('Failed to add item. Please try again.');
-		} finally {
-			setIsAnalyzing(false);
 		}
 	};
 
@@ -412,10 +408,10 @@ const Index = () => {
 					<div className="rounded-lg bg-gray-20 border flex flex-col mx-4 my-6 p-4 space-y-2">
 						<div className="flex flex-row space-x-1 items-center">
 							<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
-							<h2 className="font-semibold text-lg">Item Details</h2>
+							<h2 className="font-semibold text-lg">Item Details (optional)</h2>
 						</div>
 						<div className="w-full flex flex-col space-y-1 mb-2">
-							<p className="font-semibold">Source (optional)</p>
+							<p className="font-semibold">Source</p>
 							<input
 								type="text"
 								value={singleItem.source}
@@ -427,7 +423,7 @@ const Index = () => {
 							/>
 						</div>
 						<div className="w-full flex flex-col space-y-1 mb-4">
-							<p className="font-semibold">Description (optional)</p>
+							<p className="font-semibold">Description</p>
 							<input
 								type="text"
 								value={singleItem.description}
@@ -439,7 +435,12 @@ const Index = () => {
 							/>
 						</div>
 						<div className="w-full flex flex-col space-y-1 mb-4">
-							<p className="font-semibold">Custom Tags (optional)</p>
+							<p className="font-semibold">
+								Custom Tags{' '}
+								<span className="text-gray-500 text-sm">
+									(separate by comma)
+								</span>
+							</p>
 							<input
 								type="text"
 								value={customTags}

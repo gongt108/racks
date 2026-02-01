@@ -24,12 +24,19 @@ import {
 
 const SingleItemInfoCard = ({ item }) => {
 	// const [item, setItem] = useState([]);
+	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
 	const [newPhotos, setNewPhotos] = useState(item.photos || []);
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 	const [garmentType, setGarmentType] = useState(item.category || '');
 	const [purchasePrice, setPurchasePrice] = useState<number | null>(
 		item.purchase_price || null,
 	);
+	const [customTags, setCustomTags] = useState<string>('');
+	const [singleItem, setSingleItem] = useState(item || {});
+
+	const handleOptionalInfoChange = (field: string, value: string) => {
+		setSingleItem((prev) => ({ ...prev, [field]: value }));
+	};
 
 	console.log(item);
 	const i = 0;
@@ -50,7 +57,7 @@ const SingleItemInfoCard = ({ item }) => {
 	return (
 		<div>
 			{i == 0 && (
-				<div className="flex flex-col mt-3 mx-4 rounded-lg border">
+				<div className="flex flex-col mt-3 mx-4 rounded-lg border ">
 					<div className="flex flex-row justify-between mx-2 my-2 items-center">
 						<h2 className="font-semibold">Photos</h2>
 						<div
@@ -61,24 +68,25 @@ const SingleItemInfoCard = ({ item }) => {
 							<p>AI Scan</p>
 						</div>
 					</div>
-					{/* <div className="grid grid-cols-2 gap-3 mt-3">
-                                            {item.photos.map((photo, index) => (
-                                                <div key={index} className="relative group">
-                                                    <img
-                                                        src={photo.preview}
-                                                        alt=""
-                                                        className="w-full h-24 object-cover rounded-lg"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        // onClick={() => removeImage(index, photos, setPhotos)}
-                                                        className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center bg-red-600 cursor-pointer"
-                                                    >
-                                                        <IoIosClose className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div> */}
+					<div className="grid grid-cols-5 gap-3 mt-3 px-4 pb-8">
+						{item?.photoUrls?.length > 0 &&
+							item?.photoUrls.map((photo, index) => (
+								<div key={index} className="relative group">
+									<img
+										src={photo}
+										alt=""
+										className="w-full h-24 object-cover rounded-lg"
+									/>
+									<button
+										type="button"
+										// onClick={() => removeImage(index, photos, setPhotos)}
+										className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center bg-red-600 cursor-pointer"
+									>
+										<IoIosClose className="w-3 h-3" />
+									</button>
+								</div>
+							))}
+					</div>
 				</div>
 			)}
 			{/* Item classification */}
@@ -141,102 +149,98 @@ const SingleItemInfoCard = ({ item }) => {
 							className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
 					</div>
-					{/* <div className="flex flex-col w-full space-y-1">
-                                            <p className="font-semibold">
-                                                Listing price ($){' '}
-                                                {autoPricingChecked ? (
-                                                    ''
-                                                ) : (
-                                                    <span className="text-red-500">*</span>
-                                                )}
-                                            </p>
-                                            <input
-                                                type="text"
-                                                value={
-                                                    autoPricingChecked
-                                                        ? 'Auto Calculated'
-                                                        : singleItem.listingPrice
-                                                }
-                                                onChange={(e) =>
-                                                    setSingleItem({
-                                                        ...singleItem,
-                                                        listingPrice: Number(e.target.value),
-                                                    })
-                                                }
-                                                disabled={autoPricingChecked}
-                                                placeholder={autoPricingChecked ? 'Auto Calculated' : '0.00'}
-                                                className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                            <FormControlLabel
-                                                control={
-                                                    <Switch
-                                                        checked={autoPricingChecked}
-                                                        onChange={(e) => setAutoPricingChecked(e.target.checked)}
-                                                    />
-                                                }
-                                                label={
-                                                    autoPricingChecked
-                                                        ? 'Auto Pricing Enabled'
-                                                        : 'Auto Pricing Disabled'
-                                                }
-                                            />
-                                            <div className="flex flex-row space-x-2 items-center">
-                                                <BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
-                                                <p className="text-sm">
-                                                    Automatically calculated based on your settings (200%
-                                                    markup)
-                                                </p>
-                                            </div>
-                                        </div> */}
+					<div className="flex flex-col w-full space-y-1">
+						<p className="font-semibold">
+							Listing price ($){' '}
+							{autoPricingChecked ? (
+								''
+							) : (
+								<span className="text-red-500">*</span>
+							)}
+						</p>
+						<input
+							type="text"
+							value={
+								autoPricingChecked ? 'Auto Calculated' : singleItem.listingPrice
+							}
+							onChange={(e) =>
+								setSingleItem({
+									...singleItem,
+									listingPrice: Number(e.target.value),
+								})
+							}
+							disabled={autoPricingChecked}
+							placeholder={autoPricingChecked ? 'Auto Calculated' : '0.00'}
+							className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						/>
+						<FormControlLabel
+							control={
+								<Switch
+									checked={autoPricingChecked}
+									onChange={(e) => setAutoPricingChecked(e.target.checked)}
+								/>
+							}
+							label={
+								autoPricingChecked
+									? 'Auto Pricing Enabled'
+									: 'Auto Pricing Disabled'
+							}
+						/>
+						<div className="flex flex-row space-x-2 items-center">
+							<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
+							<p className="text-sm">
+								Automatically calculated based on your settings (200% markup)
+							</p>
+						</div>
+					</div>
 				</div>
 			</div>
-			{/* <div className="rounded-lg bg-gray-20 border flex flex-col mx-4 my-6 p-4 space-y-2">
-                                    <div className="flex flex-row space-x-1 items-center">
-                                        <BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
-                                        <h2 className="font-semibold text-lg">Item Details</h2>
-                                    </div>
-                                    <div className="w-full flex flex-col space-y-1 mb-2">
-                                        <p className="font-semibold">Source (optional)</p>
-                                        <input
-                                            type="text"
-                                            value={singleItem.source}
-                                            onChange={(e) =>
-                                                handleOptionalInfoChange('source', e.target.value)
-                                            }
-                                            placeholder="e.g. Thrift Store, Zara, etc."
-                                            className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <div className="w-full flex flex-col space-y-1 mb-4">
-                                        <p className="font-semibold">Description (optional)</p>
-                                        <input
-                                            type="text"
-                                            value={singleItem.description}
-                                            onChange={(e) =>
-                                                handleOptionalInfoChange('description', e.target.value)
-                                            }
-                                            placeholder="Brief description of the item"
-                                            className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <div className="w-full flex flex-col space-y-1 mb-4">
-                                        <p className="font-semibold">Custom Tags (optional)</p>
-                                        <input
-                                            type="text"
-                                            value={singleItem.customTags}
-                                            onChange={(e) =>
-                                                handleOptionalInfoChange('customTags', e.target.value)
-                                            }
-                                            placeholder="e.g. vintage, summer, etc."
-                                            className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                        <p className="text-sm font-light">
-                                            {' '}
-                                            Add custom tags to organize your items. Auto-tags will be
-                                            generated too!
-                                        </p>
-                                    </div>
-                                </div> */}
+			<div className="rounded-lg bg-gray-20 border flex flex-col mx-4 my-6 p-4 space-y-2">
+				<div className="flex flex-row space-x-1 items-center">
+					<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
+					<h2 className="font-semibold text-lg">Item Details (optional)</h2>
+				</div>
+				<div className="w-full flex flex-col space-y-1 mb-2">
+					<p className="font-semibold">Source</p>
+					<input
+						type="text"
+						value={singleItem.source}
+						onChange={(e) => handleOptionalInfoChange('source', e.target.value)}
+						placeholder="e.g. Thrift Store, Zara, etc."
+						className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+				</div>
+				<div className="w-full flex flex-col space-y-1 mb-4">
+					<p className="font-semibold">Description</p>
+					<input
+						type="text"
+						value={singleItem.description}
+						onChange={(e) =>
+							handleOptionalInfoChange('description', e.target.value)
+						}
+						placeholder="Brief description of the item"
+						className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+				</div>
+				<div className="w-full flex flex-col space-y-1 mb-4">
+					<p className="font-semibold">
+						Custom Tags{' '}
+						<span className="text-gray-500 text-sm">(separate by comma)</span>
+					</p>
+					<input
+						type="text"
+						value={customTags}
+						onChange={(e) => setCustomTags(e.target.value)}
+						placeholder="e.g. vintage, summer, etc."
+						className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+					<p className="text-sm font-light">
+						{' '}
+						Add custom tags to organize your items. Auto-tags will be generated
+						too!
+					</p>
+				</div>
+			</div>
 		</div>
 	);
 };
