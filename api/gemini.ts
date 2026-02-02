@@ -13,28 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 	try {
 		const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-		// Hardcoded test images
-		const testImages = [
-			{
-				mimeType: 'image/png',
-				data:
-					'iVBORw0KGgoAAAANSUhEUgAAAAUA' +
-					'AAAFCAYAAACNbyblAAAAHElEQVQI12P4' +
-					'//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==', // tiny 1x1 PNG
-			},
-			{
-				mimeType: 'image/jpeg',
-				data:
-					'/9j/4AAQSkZJRgABAQEASABIAAD/2wBD' +
-					'ABALDA4MChAODQ4SEhQWFhQUFBcXFRgd' +
-					'Gx0eHx4iJCQgIycpLCwsMDAwMDAwMDAw', // tiny JPEG
-			},
-		];
-
-		const images =
-			req.body.images && req.body.images.length > 0
-				? req.body.images
-				: testImages; // Use hardcoded images if none provided
+		const images = req.body.images as { mimeType: string; data: string }[];
 
 		const contents = [
 			{ text: 'Identify items in these images:' },

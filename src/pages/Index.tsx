@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 
 import { garmentTypes } from '@/constants/garmentTypes';
 import { useAuth } from '@/hooks/useAuth';
-import { fileToBase64 } from '@/utils/fileToBase64';
+import { fileToBase64, prepareImagesForGemini } from '@/utils/fileToBase64';
 
 import UploadIcon from '@mui/icons-material/Upload';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
@@ -28,6 +28,7 @@ import {
 	triggerFileInput,
 	handleBulkUpload,
 	handleSingleUpload,
+	handleDropUpload,
 	removeImage,
 	PhotoItem,
 } from '@/utils/fileUploads';
@@ -187,52 +188,27 @@ const Index = () => {
 		'https://upload.wikimedia.org/wikipedia/commons/3/3f/JPEG_example_flower.jpg',
 	];
 
-	const scanWithAI = () => {
-		console.log(photos);
+	const scanWithAI = async () => {
+		if (photos.length === 0) return;
+
+		setIsAnalyzing(true);
+		try {
+			const images = await prepareImagesForGemini(photos);
+
+			const response = await fetch('/api/gemini', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ images }),
+			});
+
+			const data = await response.json();
+			console.log('AI Response:', data);
+		} catch (err: any) {
+			console.error('Error scanning images:', err.message);
+		} finally {
+			setIsAnalyzing(false);
+		}
 	};
-
-	// const scanWithAI = async () => {
-	// 	try {
-	// 		const images = await Promise.all(
-	// 			webImages.map(async (url) => {
-	// 				const base64Img = await urlToBase64(url);
-	// 				const rawBase64 = base64Img.split(',')[1];
-	// 				const mimeMatch = base64Img.match(/^data:(image\/[a-zA-Z]+);base64,/);
-	// 				const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-	// 				return { mimeType, data: rawBase64 };
-	// 			}),
-	// 		);
-
-	// 		const response = await fetch('/api/gemini', {
-	// 			method: 'POST',
-	// 			headers: { 'Content-Type': 'application/json' },
-	// 			body: JSON.stringify({ images }),
-	// 		});
-
-	// 		const data = await response.json();
-	// 		console.log('AI Response:', data);
-	// 	} catch (err: any) {
-	// 		console.error('Error scanning images:', err.message);
-	// 	}
-	// };
-
-	// const testAPI = async () => {
-	// 	try {
-	// 		const response = await fetch('/api/gemini', {
-	// 			method: 'POST', // your function expects POST
-	// 			headers: { 'Content-Type': 'application/json' },
-	// 			body: JSON.stringify({ images: [] }), // empty array for test
-	// 		});
-
-	// 		if (!response.ok)
-	// 			throw new Error(`HTTP error! status: ${response.status}`);
-
-	// 		const data = await response.json();
-	// 		console.log(`API Response: ${JSON.stringify(data, null, 2)}`);
-	// 	} catch (err: any) {
-	// 		console.error(`Error: ${err.message}`);
-	// 	}
-	// };
 
 	// const scanWithAI = async () => {
 	// 	setIsAnalyzing(true);
@@ -255,9 +231,6 @@ const Index = () => {
 	return (
 		<div className="flex flex-1 w-full">
 			<main className="container relative mx-auto px-4 py-8 flex flex-col space-y-8">
-				<div onClick={scanWithAI} className="cursor-pointer">
-					Test button
-				</div>
 				{/* BULK UPLOAD */}
 				<div
 					onClick={handleBulkClick}
@@ -294,7 +267,15 @@ const Index = () => {
 				</div>
 
 				{/* SINGLE UP TO 5 */}
-				<div className="mx-4 md:mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 cursor-pointer hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]">
+				<div
+					className="mx-4 md:mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 cursor-pointer hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]"
+					onDragOver={(e) => e.preventDefault()}
+					onDrop={(e) => {
+						e.preventDefault();
+						const files = Array.from(e.dataTransfer.files);
+						handleDropUpload(files, setPhotos, 5);
+					}}
+				>
 					<div className="flex flex-col md:flex-row">
 						<div className="bg-rose-600 shadow-lg shadow-rose-500/50 w-fit p-3 rounded-md md:mr-2">
 							<CameraAltIcon className="w-6 h-6 text-white" fontSize="large" />
@@ -344,7 +325,7 @@ const Index = () => {
 							<div className="flex flex-row justify-between mx-2 my-2 items-center">
 								<h2 className="font-semibold">Photos</h2>
 								<div
-									onClick={() => setIsAnalyzing(true)}
+									onClick={scanWithAI}
 									className=" flex flex-row items-center rounded-lg bg-gray-200 text-grey-300 px-2 py-1 text-gray-500 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md font-semibold cursor-pointer"
 								>
 									<BsRobot className="h-4 w-4 mr-2" />
