@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 
 import { garmentTypes } from '@/constants/garmentTypes';
 import { useAuth } from '@/hooks/useAuth';
+import { fileToBase64 } from '@/utils/fileToBase64';
 
 import UploadIcon from '@mui/icons-material/Upload';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
@@ -180,9 +181,83 @@ const Index = () => {
 		}
 	};
 
+	const webImages = [
+		'https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png',
+		'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Example.jpg/320px-Example.jpg',
+		'https://upload.wikimedia.org/wikipedia/commons/3/3f/JPEG_example_flower.jpg',
+	];
+
+	const scanWithAI = () => {
+		console.log(photos);
+	};
+
+	// const scanWithAI = async () => {
+	// 	try {
+	// 		const images = await Promise.all(
+	// 			webImages.map(async (url) => {
+	// 				const base64Img = await urlToBase64(url);
+	// 				const rawBase64 = base64Img.split(',')[1];
+	// 				const mimeMatch = base64Img.match(/^data:(image\/[a-zA-Z]+);base64,/);
+	// 				const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+	// 				return { mimeType, data: rawBase64 };
+	// 			}),
+	// 		);
+
+	// 		const response = await fetch('/api/gemini', {
+	// 			method: 'POST',
+	// 			headers: { 'Content-Type': 'application/json' },
+	// 			body: JSON.stringify({ images }),
+	// 		});
+
+	// 		const data = await response.json();
+	// 		console.log('AI Response:', data);
+	// 	} catch (err: any) {
+	// 		console.error('Error scanning images:', err.message);
+	// 	}
+	// };
+
+	// const testAPI = async () => {
+	// 	try {
+	// 		const response = await fetch('/api/gemini', {
+	// 			method: 'POST', // your function expects POST
+	// 			headers: { 'Content-Type': 'application/json' },
+	// 			body: JSON.stringify({ images: [] }), // empty array for test
+	// 		});
+
+	// 		if (!response.ok)
+	// 			throw new Error(`HTTP error! status: ${response.status}`);
+
+	// 		const data = await response.json();
+	// 		console.log(`API Response: ${JSON.stringify(data, null, 2)}`);
+	// 	} catch (err: any) {
+	// 		console.error(`Error: ${err.message}`);
+	// 	}
+	// };
+
+	// const scanWithAI = async () => {
+	// 	setIsAnalyzing(true);
+	// 	try {
+	// 		const response = await fetch('/api/gemini', {
+	// 			method: 'POST',
+	// 			headers: { 'Content-Type': 'application/json' },
+	// 			body: JSON.stringify({ images: [] }), // empty array
+	// 		});
+
+	// 		const data = await response.json();
+	// 		console.log('AI Response:', data.text);
+	// 	} catch (error: any) {
+	// 		console.error(error.message);
+	// 	} finally {
+	// 		setIsAnalyzing(false);
+	// 	}
+	// };
+
 	return (
 		<div className="flex flex-1 w-full">
 			<main className="container relative mx-auto px-4 py-8 flex flex-col space-y-8">
+				<div onClick={scanWithAI} className="cursor-pointer">
+					Test button
+				</div>
 				{/* BULK UPLOAD */}
 				<div
 					onClick={handleBulkClick}
