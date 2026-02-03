@@ -15,8 +15,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 		const images = req.body.images as { mimeType: string; data: string }[];
 
+		const prompt = `Analyze the provided clothing image(s). 
+        1. Extract all numerical values that resemble prices (e.g., tags, stickers, handwritten labels).
+        2. Identify the primary garment type.
+        3. Determine the 'suggestedPrice' by identifying the most prominent or lowest price tag shown.
+
+        Return the data strictly in this JSON schema:
+        {
+          "price": string[],
+          "suggestedPrice": number | null,
+          "garmentType": "Shirt" | "Skirt" | "Shorts" | "Pants" | "Dress" | "Bag" | "Belt" | "Shoes" | "Jacket" | "Sweater" | "Accessories" | "Other"
+        }`;
+
 		const contents = [
-			{ text: 'Identify items in these images:' },
+			{
+				text: prompt,
+			},
 			...images.map((img: { mimeType: string; data: string }) => ({
 				inlineData: img,
 			})),
