@@ -20,11 +20,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         2. Identify the primary garment type.
         3. Determine the 'suggestedPrice' by identifying the most prominent or lowest price tag shown.
 
-        Return the data strictly in this JSON schema:
+        Do NOT wrap in markdown. Return the data strictly in this JSON schema:
         {
           "price": string[],
           "suggestedPrice": number | null,
-          "garmentType": "Shirt" | "Skirt" | "Shorts" | "Pants" | "Dress" | "Bag" | "Belt" | "Shoes" | "Jacket" | "Sweater" | "Accessories" | "Other"
+          "garmentType": "shirt" | "skirt" | "shorts" | "pants" | "dress" | "bag" | "belt" | "shoes" | "jacket" | "sweater" | "accessories" | "other"
         }`;
 
 		const contents = [
@@ -41,7 +41,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 			contents,
 		});
 
-		res.status(200).json({ text: response.text });
+		const rawText = response.text;
+
+		if (!rawText) {
+			return res.status(500).json({ error: 'Empty AI response' });
+		}
+		const parsed = JSON.parse(rawText);
+
+		res.status(200).json(parsed);
 	} catch (err: any) {
 		console.error('Server error:', err);
 		res.status(500).json({ error: err.message });

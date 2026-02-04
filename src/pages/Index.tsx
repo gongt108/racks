@@ -182,12 +182,6 @@ const Index = () => {
 		}
 	};
 
-	const webImages = [
-		'https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png',
-		'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Example.jpg/320px-Example.jpg',
-		'https://upload.wikimedia.org/wikipedia/commons/3/3f/JPEG_example_flower.jpg',
-	];
-
 	const scanWithAI = async () => {
 		if (photos.length === 0) return;
 
@@ -202,31 +196,15 @@ const Index = () => {
 			});
 
 			const data = await response.json();
-			console.log('AI Response:', data);
+			console.log(data);
+			setPurchasePrice(data.suggestedPrice);
+			setGarmentType(data.garmentType);
 		} catch (err: any) {
 			console.error('Error scanning images:', err.message);
 		} finally {
 			setIsAnalyzing(false);
 		}
 	};
-
-	// const scanWithAI = async () => {
-	// 	setIsAnalyzing(true);
-	// 	try {
-	// 		const response = await fetch('/api/gemini', {
-	// 			method: 'POST',
-	// 			headers: { 'Content-Type': 'application/json' },
-	// 			body: JSON.stringify({ images: [] }), // empty array
-	// 		});
-
-	// 		const data = await response.json();
-	// 		console.log('AI Response:', data.text);
-	// 	} catch (error: any) {
-	// 		console.error(error.message);
-	// 	} finally {
-	// 		setIsAnalyzing(false);
-	// 	}
-	// };
 
 	return (
 		<div className="flex flex-1 w-full">
