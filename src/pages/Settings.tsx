@@ -37,11 +37,11 @@ const Settings = () => {
 			return;
 		}
 
-		setActiveValue(value === '' ? '' : Number(value));
+		setActiveValue(Number(value));
 	};
 
 	const handleSave = async () => {
-		if (activeValue === '') {
+		if (isNaN(activeValue)) {
 			toast.error('Please enter a valid markup value');
 			return;
 		}
