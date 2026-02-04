@@ -17,13 +17,18 @@ export const triggerFileInput = (ref: React.RefObject<HTMLInputElement>) => {
    UPLOAD HANDLERS
 ================================ */
 
-export const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-	const files = e.target.files;
+export const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>, 
+setBulkPhotos: React.Dispatch<React.SetStateAction<PhotoItem[]>>
+) => {
+	const files = Array.from(e.target.files || []);
 	if (!files) return;
 
-	const fileArray = Array.from(files);
-	console.log('Bulk upload:', fileArray);
+	const newPhotos: PhotoItem[] = files.map((file) => ({
+		file,
+		preview: URL.createObjectURL(file),
+	}));
 
+	setBulkPhotos((prev) => [...prev, ...newPhotos]);
 	e.target.value = '';
 };
 
