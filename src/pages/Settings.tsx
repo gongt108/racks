@@ -1,30 +1,31 @@
 import { useState } from 'react';
 import { supabase } from '@/supabaseClient';
+import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/context/SettingsContext';
 import { toast } from 'react-toastify';
 
 const Settings = () => {
 	const {
 		percentageMarkup,
-		markupValue,
+		fixedMarkup,
 		isPercentage,
-		setPercentageMarkupValue,
-		setMarkupValue,
+		setPercentageMarkup,
+		setFixedMarkup,
 		setIsPercentage,
 	} = useSettings();
+
+	const { user } = useAuth();
 
 	const [emailNotifications, setEmailNotifications] = useState(true);
 	const [inAppAlerts, setInAppAlerts] = useState(true);
 	const [isEditingValue, setIsEditingValue] = useState(false);
-	const activeValue = isPercentage ? percentageMarkup : markupValue;
-	const setActiveValue = isPercentage
-		? setPercentageMarkupValue
-		: setMarkupValue;
+	const activeValue = isPercentage ? percentageMarkup : fixedMarkup;
+	const setActiveValue = isPercentage ? setPercentageMarkup : setFixedMarkup;
 
 	const handleToggle = () => {
 		setIsPercentage(!isPercentage);
-		setMarkupValue('');
-		setPercentageMarkupValue('');
+		setFixedMarkup('');
+		setPercentageMarkup('');
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,14 +41,37 @@ const Settings = () => {
 		setActiveValue(value === '' ? '' : Number(value));
 	};
 
-	const handleSave = () => {
-		setIsEditingValue(false);
-		toast.success('Settings saved successfully');
+	const handleSave = async () => {
+		if (activeValue === '') {
+			toast.error('Please enter a valid markup value');
+			return;
+		}
+
+		const column = isPercentage ? 'percentage_markup' : 'fixed_markup';
+		const onSuccess = isPercentage
+			? () => setPercentageMarkup(activeValue)
+			: () => setFixedMarkup(activeValue);
+
+		try {
+			const { error } = await supabase
+				.from('user_settings')
+				.update({ [column]: activeValue })
+				.eq('user_id', user.id);
+
+			if (error) throw error;
+
+			toast.success('Settings saved successfully');
+			onSuccess();
+			setIsEditingValue(false);
+		} catch (error) {
+			console.error('Error saving settings:', error);
+			toast.error('Error saving settings');
+		}
 	};
 
 	const handleCancel = () => {
 		setIsEditingValue(false);
-		setActiveValue(isPercentage ? percentageMarkup : markupValue);
+		setActiveValue(isPercentage ? percentageMarkup : fixedMarkup);
 	};
 
 	return (
@@ -111,6 +135,7 @@ const Settings = () => {
 							<div className="flex flex-row">
 								<button
 									type="button"
+									onClick={handleSave}
 									className="px-4 py-2 rounded-xl bg-pink-500 text-white font-semibold
 										hover:bg-pink-600 active:scale-95 transition
 										focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
