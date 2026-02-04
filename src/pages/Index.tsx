@@ -60,9 +60,7 @@ const Index = () => {
 		};
 	}, [photos]);
 
-	const { percentageMarkup, markupValue, isPercentage } = useSettings();
-
-	console.log('Markup settings:', { markupValue, isPercentage });
+	const { percentageMarkup, fixedMarkup, isPercentage } = useSettings();
 
 	const handleBulkClick = () => triggerFileInput(bulkRef);
 	const handleSingleClick = () => triggerFileInput(singleRef);
@@ -112,7 +110,12 @@ const Index = () => {
 
 		try {
 			const listingPrice = autoPricingChecked
-				? Number((purchasePrice * 2).toFixed(2))
+				? Number(
+						(isPercentage
+							? purchasePrice * (percentageMarkup / 100 + 1)
+							: purchasePrice + fixedMarkup
+						).toFixed(2),
+					)
 				: singleItem.listingPrice;
 
 			const { data: item, error: itemError } = await supabase
@@ -437,7 +440,7 @@ const Index = () => {
 									<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
 									<p className="text-sm">
 										Automatically calculated based on your settings (
-										{isPercentage ? `${percentageMarkup}%` : `$${markupValue}`})
+										{isPercentage ? `${percentageMarkup}%` : `$${fixedMarkup}`})
 									</p>
 								</div>
 							</div>

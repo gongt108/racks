@@ -8,13 +8,13 @@ import {
 import { supabase } from '@/supabaseClient';
 
 type SettingsContextType = {
-	percentageMarkup: number | '';
-	fixedMarkup: number | '';
+	percentageMarkup: number;
+	fixedMarkup: number;
 	isPercentage: boolean;
 	emailNotification: boolean;
 	toastNotification: boolean;
-	setPercentageMarkup: (value: number | '') => void;
-	setFixedMarkup: (value: number | '') => void;
+	setPercentageMarkup: (value: number) => void;
+	setFixedMarkup: (value: number) => void;
 	setIsPercentage: (value: boolean) => void;
 	setEmailNotification: (value: boolean) => void;
 	setToastNotification: (value: boolean) => void;
@@ -25,8 +25,8 @@ const SettingsContext = createContext<SettingsContextType | undefined>(
 );
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
-	const [percentageMarkup, setPercentageMarkup] = useState<number | ''>(200);
-	const [fixedMarkup, setFixedMarkup] = useState<number | ''>(10);
+	const [percentageMarkup, setPercentageMarkup] = useState<number>(200);
+	const [fixedMarkup, setFixedMarkup] = useState<number>(10);
 	const [isPercentage, setIsPercentage] = useState(true);
 	const [emailNotification, setEmailNotification] = useState(true);
 	const [toastNotification, setToastNotification] = useState(true);
