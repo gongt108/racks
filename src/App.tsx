@@ -1,5 +1,5 @@
 import { AuthProvider } from '@/context/AuthContext';
-import { PricingProvider } from '@/context/PricingContext';
+import { SettingsProvider } from '@/context/SettingsContext';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 
@@ -19,7 +19,7 @@ function App() {
 	return (
 		<>
 			<AuthProvider>
-				<PricingProvider>
+				<SettingsProvider>
 					<BrowserRouter>
 						<ToastContainer
 							position="top-right"
@@ -45,7 +45,7 @@ function App() {
 							</Route>
 						</Routes>
 					</BrowserRouter>
-				</PricingProvider>
+				</SettingsProvider>
 			</AuthProvider>
 		</>
 	);

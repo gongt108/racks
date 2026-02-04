@@ -1,25 +1,53 @@
 import { useState } from 'react';
-import { usePricing } from '@/context/PricingContext';
+import { supabase } from '@/supabaseClient';
+import { useSettings } from '@/context/SettingsContext';
+import { toast } from 'react-toastify';
 
 const Settings = () => {
+	const {
+		percentageMarkup,
+		markupValue,
+		isPercentage,
+		setPercentageMarkupValue,
+		setMarkupValue,
+		setIsPercentage,
+	} = useSettings();
+
 	const [emailNotifications, setEmailNotifications] = useState(true);
 	const [inAppAlerts, setInAppAlerts] = useState(true);
-
-	const { markupValue, isPercentage, setMarkupValue, setIsPercentage } =
-		usePricing();
+	const [isEditingValue, setIsEditingValue] = useState(false);
+	const activeValue = isPercentage ? percentageMarkup : markupValue;
+	const setActiveValue = isPercentage
+		? setPercentageMarkupValue
+		: setMarkupValue;
 
 	const handleToggle = () => {
 		setIsPercentage(!isPercentage);
-		setMarkupValue(''); // reset when switching mode
+		setMarkupValue('');
+		setPercentageMarkupValue('');
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setIsEditingValue(true);
 		const value = e.target.value;
 
 		// Allow only numbers and decimal
-		if (/^\d*\.?\d*$/.test(value)) {
-			setMarkupValue(value === '' ? '' : Number(value));
+		if (!/^\d*\.?\d*$/.test(value)) {
+			toast.error('Please enter a valid number');
+			return;
 		}
+
+		setActiveValue(value === '' ? '' : Number(value));
+	};
+
+	const handleSave = () => {
+		setIsEditingValue(false);
+		toast.success('Settings saved successfully');
+	};
+
+	const handleCancel = () => {
+		setIsEditingValue(false);
+		setActiveValue(isPercentage ? percentageMarkup : markupValue);
 	};
 
 	return (
@@ -71,13 +99,36 @@ const Settings = () => {
 						{isPercentage ? 'Percentage Markup (%)' : 'Fixed Markup ($)'}
 					</label>
 
-					<input
-						type="text"
-						placeholder={isPercentage ? 'e.g. 20' : 'e.g. 5'}
-						value={markupValue}
-						onChange={handleChange}
-						className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
-					/>
+					<div className="flex flex-row items-center space-x-2">
+						<input
+							type="text"
+							placeholder={isPercentage ? 'e.g. 20' : 'e.g. 5'}
+							value={activeValue}
+							onChange={handleChange}
+							className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+						/>
+						{isEditingValue && (
+							<div className="flex flex-row">
+								<button
+									type="button"
+									className="px-4 py-2 rounded-xl bg-pink-500 text-white font-semibold
+										hover:bg-pink-600 active:scale-95 transition
+										focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+								>
+									Save
+								</button>
+								<button
+									type="button"
+									onClick={handleCancel}
+									className="px-4 py-2 rounded-xl border border-gray-300 text-gray-600 font-medium
+										hover:bg-gray-100 active:scale-95 transition
+										focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+								>
+									Cancel
+								</button>
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 			<div className="rounded-xl border border-pink-200 bg-white shadow-lg max-w-[48rem] w-full p-6 mx-auto">

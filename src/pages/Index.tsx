@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
 import { toast } from 'react-toastify';
 
-import { usePricing } from '@/context/PricingContext';
+import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/hooks/useAuth';
 
 import { garmentTypes } from '@/constants/garmentTypes';
@@ -60,8 +60,7 @@ const Index = () => {
 		};
 	}, [photos]);
 
-	const { markupValue, isPercentage, setMarkupValue, setIsPercentage } =
-		usePricing();
+	const { percentageMarkup, markupValue, isPercentage } = useSettings();
 
 	console.log('Markup settings:', { markupValue, isPercentage });
 
@@ -438,8 +437,7 @@ const Index = () => {
 									<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
 									<p className="text-sm">
 										Automatically calculated based on your settings (
-										{markupValue}
-										{isPercentage ? '%' : ''} markup)
+										{isPercentage ? `${percentageMarkup}%` : `$${markupValue}`})
 									</p>
 								</div>
 							</div>
