@@ -234,6 +234,9 @@ const Index = () => {
 							<p className="text-md">
 								Upload multiple items at once from your gallery
 							</p>
+						<p className="text-sm text-gray-300">
+								Note: you will need to add item information in the inventory tab. 
+							</p>
 						</div>
 					</div>
 					<div className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 mt-16 mb-8 py-8 px-4 space-y-2 group-hover:border-rose-400 group-hover:bg-pink-50 group-hover:shadow-lg group-hover:shadow-pink-100 transition">
@@ -256,6 +259,12 @@ const Index = () => {
 						<div className="flex flex-col mt-3 mx-4 rounded-lg border">
 							<div className="flex flex-row justify-between mx-2 my-2 items-center">
 								<h2 className="font-semibold">Bulk Uploads</h2>
+							<div
+									// onClick={scanWithAI}
+									className=" flex flex-row items-center rounded-lg bg-gray-200 text-grey-300 px-2 py-1 text-gray-500 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md font-semibold cursor-pointer"
+								>
+									<p>Bulk Add</p>
+								</div>
 							</div>
 							<div className="grid grid-cols-2 gap-3 mt-3">
 								{bulkPhotos.map((photo, index) => (
