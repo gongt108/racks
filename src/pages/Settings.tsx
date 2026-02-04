@@ -24,8 +24,7 @@ const Settings = () => {
 
 	const handleToggle = () => {
 		setIsPercentage(!isPercentage);
-		setFixedMarkup('');
-		setPercentageMarkup('');
+		setActiveValue(isPercentage ? percentageMarkup : fixedMarkup);
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
