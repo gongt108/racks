@@ -38,6 +38,7 @@ const Index = () => {
 	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
 	const [customTags, setCustomTags] = useState<string>('');
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
+	const [bulkPhotos, setBulkPhotos] = useState<PhotoItem[]>([]);
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 
 	const [singleItem, setSingleItem] = useState({
@@ -86,7 +87,7 @@ const Index = () => {
 		}));
 	};
 
-	const handleAddItem = async () => {
+	const handleAddSingleItem = async () => {
 		const {
 			data: { user },
 		} = await supabase.auth.getUser();
@@ -249,6 +250,33 @@ const Index = () => {
 						multiple
 						onChange={handleBulkUpload}
 					/>
+
+{/* Bulk upload photo container */}
+					{bulkPhotos.length > 0 && (
+						<div className="flex flex-col mt-3 mx-4 rounded-lg border">
+							<div className="flex flex-row justify-between mx-2 my-2 items-center">
+								<h2 className="font-semibold">Bulk Uploads</h2>
+							</div>
+							<div className="grid grid-cols-2 gap-3 mt-3">
+								{bulkPhotos.map((photo, index) => (
+									<div key={index} className="relative group">
+										<img
+											src={photo.preview}
+											alt=""
+											className="w-full h-24 object-cover rounded-lg"
+										/>
+										<button
+											type="button"
+											onClick={() => removeImage(index, bulkPhotos, setBulkPhotos)}
+											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center bg-red-600 cursor-pointer"
+										>
+											<IoIosClose className="w-3 h-3" />
+										</button>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
 				</div>
 
 				{/* SINGLE UP TO 5 */}
@@ -499,7 +527,7 @@ const Index = () => {
 				</div>
 				<button
 					className="bg-pink-300 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full mx-auto mt-4"
-					onClick={handleAddItem}
+					onClick={handleAddSingleItem}
 				>
 					Add Item
 				</button>
