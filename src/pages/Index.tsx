@@ -251,7 +251,7 @@ const Index = () => {
 						className="hidden"
 						accept="image/*"
 						multiple
-						onChange={handleBulkUpload}
+						onChange={(e) => handleBulkUpload(e, setBulkPhotos)}
 					/>
 
 {/* Bulk upload photo container */}
