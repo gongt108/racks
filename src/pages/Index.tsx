@@ -2,28 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
 import { toast } from 'react-toastify';
 
-import { garmentTypes } from '@/constants/garmentTypes';
+import { usePricing } from '@/context/PricingContext';
 import { useAuth } from '@/hooks/useAuth';
-import { fileToBase64, prepareImagesForGemini } from '@/utils/fileToBase64';
 
-import UploadIcon from '@mui/icons-material/Upload';
-import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import { FaShirt, FaDollarSign } from 'react-icons/fa6';
-import { BsFillInfoCircleFill } from 'react-icons/bs';
-import { IoIosClose } from 'react-icons/io';
-import { BsRobot } from 'react-icons/bs';
-
-import {
-	MenuItem,
-	Select,
-	FormControl,
-	FormControlLabel,
-	InputLabel,
-	Switch,
-	SelectChangeEvent,
-} from '@mui/material';
-
+import { garmentTypes } from '@/constants/garmentTypes';
+import { prepareImagesForGemini } from '@/utils/fileToBase64';
 import {
 	triggerFileInput,
 	handleBulkUpload,
@@ -33,12 +16,30 @@ import {
 	PhotoItem,
 } from '@/utils/fileUploads';
 
+import UploadIcon from '@mui/icons-material/Upload';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import { FaShirt, FaDollarSign } from 'react-icons/fa6';
+import { BsFillInfoCircleFill, BsRobot } from 'react-icons/bs';
+import { IoIosClose } from 'react-icons/io';
+
+import {
+	MenuItem,
+	Select,
+	FormControl,
+	FormControlLabel,
+	InputLabel,
+	Switch,
+} from '@mui/material';
+
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
 	const [purchasePrice, setPurchasePrice] = useState<number | null>(null);
 	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
 	const [customTags, setCustomTags] = useState<string>('');
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
+	const [isAnalyzing, setIsAnalyzing] = useState(false);
+
 	const [singleItem, setSingleItem] = useState({
 		photos: [] as File[],
 		category: '',
@@ -48,7 +49,6 @@ const Index = () => {
 		description: '',
 		customTags: [],
 	});
-	const [isAnalyzing, setIsAnalyzing] = useState(false);
 
 	const bulkRef = useRef<HTMLInputElement | null>(null);
 	const singleRef = useRef<HTMLInputElement | null>(null);
@@ -59,6 +59,11 @@ const Index = () => {
 			photos.forEach((img) => URL.revokeObjectURL(img.preview));
 		};
 	}, [photos]);
+
+	const { markupValue, isPercentage, setMarkupValue, setIsPercentage } =
+		usePricing();
+
+	console.log('Markup settings:', { markupValue, isPercentage });
 
 	const handleBulkClick = () => triggerFileInput(bulkRef);
 	const handleSingleClick = () => triggerFileInput(singleRef);
@@ -432,8 +437,9 @@ const Index = () => {
 								<div className="flex flex-row space-x-2 items-center">
 									<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
 									<p className="text-sm">
-										Automatically calculated based on your settings (200%
-										markup)
+										Automatically calculated based on your settings (
+										{markupValue}
+										{isPercentage ? '%' : ''} markup)
 									</p>
 								</div>
 							</div>
