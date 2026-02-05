@@ -24,7 +24,7 @@ export const STATUS_OPTIONS = {
 		textColor: 'text-green-600',
 		borderColor: 'border-green-200',
 	},
-	missingInfo: {
+	missing: {
 		label: 'Missing Info',
 		textColor: 'text-red-500',
 		borderColor: 'border-red-200',

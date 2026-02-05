@@ -43,6 +43,7 @@ const Inventory = () => {
 			);
 
 			setItems(itemsWithPhotos);
+			console.log(itemsWithPhotos);
 		};
 
 		fetchAndHydrate();

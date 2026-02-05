@@ -19,6 +19,8 @@ import {
 import UploadIcon from '@mui/icons-material/Upload';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import CircularProgress from '@mui/material/CircularProgress';
+
 import { FaShirt, FaDollarSign } from 'react-icons/fa6';
 import { BsFillInfoCircleFill, BsRobot } from 'react-icons/bs';
 import { IoIosClose } from 'react-icons/io';
@@ -31,6 +33,7 @@ import {
 	InputLabel,
 	Switch,
 } from '@mui/material';
+import { bulkInsertItems } from '@/utils/addItemsUtils';
 
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
@@ -39,6 +42,7 @@ const Index = () => {
 	const [customTags, setCustomTags] = useState<string>('');
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
 	const [bulkPhotos, setBulkPhotos] = useState<PhotoItem[]>([]);
+	const [isUploading, setIsUploading] = useState(false);
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 
 	const [singleItem, setSingleItem] = useState({
@@ -221,6 +225,12 @@ const Index = () => {
 				<div
 					onClick={handleBulkClick}
 					className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg shadow-md border-gray-200 cursor-pointer group hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]"
+					onDragOver={(e) => e.preventDefault()}
+					onDrop={(e) => {
+						e.preventDefault();
+						const files = Array.from(e.dataTransfer.files);
+						handleDropUpload(files, setBulkPhotos, 100);
+					}}
 				>
 					<div className="flex flex-col items-center text-center md:items-start md:text-start md:flex-row">
 						<div className="bg-purple-600 shadow-lg shadow-purple-500/50 w-fit p-3 rounded-md md:mr-2">
@@ -234,8 +244,9 @@ const Index = () => {
 							<p className="text-md">
 								Upload multiple items at once from your gallery
 							</p>
-						<p className="text-sm text-gray-300">
-								Note: you will need to add item information in the inventory tab. 
+							<p className="text-sm text-gray-300">
+								Note: you will need to add item information in the inventory
+								tab.
 							</p>
 						</div>
 					</div>
@@ -254,13 +265,15 @@ const Index = () => {
 						onChange={(e) => handleBulkUpload(e, setBulkPhotos)}
 					/>
 
-{/* Bulk upload photo container */}
+					{/* Bulk upload photo container */}
 					{bulkPhotos.length > 0 && (
 						<div className="flex flex-col mt-3 mx-4 rounded-lg border">
 							<div className="flex flex-row justify-between mx-2 my-2 items-center">
 								<h2 className="font-semibold">Bulk Uploads</h2>
-							<div
-									// onClick={scanWithAI}
+								<div
+									onClick={() =>
+										bulkInsertItems(bulkPhotos, setBulkPhotos, setIsUploading)
+									}
 									className=" flex flex-row items-center rounded-lg bg-gray-200 text-grey-300 px-2 py-1 text-gray-500 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md font-semibold cursor-pointer"
 								>
 									<p>Bulk Add</p>
@@ -276,7 +289,9 @@ const Index = () => {
 										/>
 										<button
 											type="button"
-											onClick={() => removeImage(index, bulkPhotos, setBulkPhotos)}
+											onClick={() =>
+												removeImage(index, bulkPhotos, setBulkPhotos)
+											}
 											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center bg-red-600 cursor-pointer"
 										>
 											<IoIosClose className="w-3 h-3" />
@@ -550,6 +565,14 @@ const Index = () => {
 						</div>
 						<p className="text-blue-700 font-medium text-sm">
 							Gemini AI is scanning your photo for details...
+						</p>
+					</div>
+				)}
+				{isUploading && (
+					<div className="w-full max-w-[64rem] fixed mx-4 z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex flex-col items-center gap-3">
+						<CircularProgress size={60} thickness={3} />
+						<p className="text-blue-700 font-medium text-md">
+							Uploading and processing your items...
 						</p>
 					</div>
 				)}
