@@ -8,7 +8,7 @@ import { IoIosFunnel } from 'react-icons/io';
 import ItemCard from '@/components/ItemCard';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
-import { fetchItems } from '@/utils/fetchItems';
+import { fetchItems, Filters } from '@/utils/fetchItems';
 
 import Modal from '@/components/ui/Modal';
 import { FormControl } from '@mui/material';
@@ -23,7 +23,7 @@ const Inventory = () => {
 
 	const status = searchParams.get('status') || 'all';
 
-	const [filters, setFilters] = useState({
+	const [filters, setFilters] = useState<Filters>({
 		status: status,
 		sortDate: 'asc',
 		sortPrice: 'none',
@@ -48,12 +48,13 @@ useEffect(() => {
 }, [filters, query]);
 
 
-	const updateFilter = (key, value) => {
-		setFilters((prev) => ({
-			...prev,
-			[key]: value,
-		}));
-	};
+	const updateFilter = <K extends keyof Filters>(
+	key: K,
+	value: Filters[K]
+) => {
+	setFilters(prev => ({ ...prev, [key]: value }));
+};
+
 
 	// Update item status locally
 	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {
