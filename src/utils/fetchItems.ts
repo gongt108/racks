@@ -1,6 +1,6 @@
 import { supabase } from '@/supabaseClient';
 
-type Filters = {
+export type Filters = {
 	status: string;
 	sortDate: 'asc' | 'desc' | 'none';
 	sortPrice: 'asc' | 'desc' | 'none';
