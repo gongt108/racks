@@ -20,20 +20,42 @@ export async function fetchItems(filters: Filters, searchQuery?: string) {
 	}
 
 	// ✅ date filters (DB-side)
-	if (filters.dateRange === 'week') {
-		const d = new Date();
-		d.setDate(d.getDate() - 7);
-		query = query.gte('created_at', d.toISOString());
-	}
+	// date filters (DB-side)
+const now = new Date();
 
-	if (filters.dateRange === 'custom') {
-		if (filters.customDates.start) {
-			query = query.gte('created_at', filters.customDates.start);
-		}
-		if (filters.customDates.end) {
-			query = query.lte('created_at', filters.customDates.end);
-		}
+if (filters.dateRange === 'today') {
+	const start = new Date();
+	start.setHours(0, 0, 0, 0);
+	query = query.gte('created_at', start.toISOString());
+}
+
+if (filters.dateRange === 'week') {
+	const start = new Date();
+	start.setDate(now.getDate() - 7);
+	query = query.gte('created_at', start.toISOString());
+}
+
+if (filters.dateRange === 'month') {
+	const start = new Date();
+	start.setMonth(now.getMonth() - 1);
+	query = query.gte('created_at', start.toISOString());
+}
+
+if (filters.dateRange === 'year') {
+	const start = new Date();
+	start.setFullYear(now.getFullYear() - 1);
+	query = query.gte('created_at', start.toISOString());
+}
+
+if (filters.dateRange === 'custom') {
+	if (filters.customDates.start) {
+		query = query.gte('created_at', filters.customDates.start);
 	}
+	if (filters.customDates.end) {
+		query = query.lte('created_at', filters.customDates.end);
+	}
+}
+
 
 	// ✅ sorting (DB-side)
 	if (filters.sortDate !== 'none') {
