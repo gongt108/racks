@@ -8,6 +8,7 @@ import { IoIosFunnel } from 'react-icons/io';
 import ItemCard from '@/components/ItemCard';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
+import { fetchItems } from '@/utils/items/fetchItemsWithFilters';
 
 import Modal from '@/components/ui/Modal';
 import { FormControl } from '@mui/material';
@@ -33,58 +34,19 @@ const Inventory = () => {
 		},
 	});
 
-	useEffect(() => {
-		const fetchAndHydrate = async () => {
-			const { data, error } = await supabase.from('items').select('*');
+useEffect(() => {
+	const run = async () => {
+		try {
+			const result = await fetchItems(filters, query);
+			setItems(result);
+		} catch (err) {
+			console.error(err);
+		}
+	};
 
-			if (error || !data) {
-				console.error(error);
-				return;
-			}
+	run();
+}, [filters, query]);
 
-			const itemsWithPhotos = await Promise.all(
-				data.map(async (item) => {
-					if (!item.photos?.length) return item;
-
-					const photoUrls = await Promise.all(
-						item.photos.map(async (path: string) => {
-							const { data } = await supabase.storage
-								.from('item-photos')
-								.createSignedUrl(path, 60 * 60);
-
-							return data?.signedUrl ?? null;
-						}),
-					);
-
-					return {
-						...item,
-						photoUrls: photoUrls.filter(Boolean),
-					};
-				}),
-			);
-
-			const filteredItems = itemsWithPhotos.filter((item) => {
-				// Filter by status
-				if (filters.status !== 'all' && item.status !== filters.status) {
-					return false;
-				}
-
-				// Filter by search query
-				if (query && !item.name.toLowerCase().includes(query.toLowerCase())) {
-					return false;
-				}
-
-				// Additional filters like date range can be added here
-
-				return true;
-			});
-
-			setItems(filteredItems);
-			console.log(filteredItems);
-		};
-
-		fetchAndHydrate();
-	}, [filters]);
 
 	const updateFilter = (key, value) => {
 		setFilters((prev) => ({
