@@ -1,16 +1,38 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/supabaseClient';
 import { FaBoxOpen, FaSearch } from 'react-icons/fa';
+import { IoIosFunnel } from 'react-icons/io';
 
 import ItemCard from '@/components/ItemCard';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import { StatusKey } from '@/constants/statusOptions';
+import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
+
+import Modal from '@/components/ui/Modal';
+import { FormControl } from '@mui/material';
 
 const Inventory = () => {
 	const [query, setQuery] = useState('');
 	const [items, setItems] = useState<any[]>([]);
 	const [itemToDelete, setItemToDelete] = useState<any | null>(null);
 	const [isEditing, setIsEditing] = useState(false);
+	const [filtersSettingsOpen, setFiltersSettingsOpen] = useState(false);
+
+	const [filters, setFilters] = useState({
+		status: 'all',
+		sortDate: 'asc',
+		sortPrice: 'none',
+		dateRange: 'all',
+		customDates: {
+			start: '',
+			end: '',
+		},
+	});
+
+	const [dateRange, setDateRange] = useState('all');
+	const [customDates, setCustomDates] = useState({
+		start: '',
+		end: '',
+	});
 
 	useEffect(() => {
 		const fetchAndHydrate = async () => {
@@ -49,6 +71,13 @@ const Inventory = () => {
 		fetchAndHydrate();
 	}, []);
 
+	const updateFilter = (key, value) => {
+		setFilters((prev) => ({
+			...prev,
+			[key]: value,
+		}));
+	};
+
 	// Update item status locally
 	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {
 		setItems((prev) =>
@@ -79,11 +108,15 @@ const Inventory = () => {
 			<div className="bg-white w-full border-b border-gray-200">
 				<div className="w-full max-w-7xl mx-auto flex justify-between items-center py-3 px-6">
 					<div className="flex gap-2">
-						<button className="border rounded-lg px-4 py-2 text-sm hover:bg-gray-50">
+						<button className="border rounded-full px-4 py-2hover:bg-gray-50">
 							Bulk Select
 						</button>
-						<button className="border rounded-lg px-4 py-2 text-sm hover:bg-gray-50">
-							Filter
+						<button
+							onClick={() => setFiltersSettingsOpen(true)}
+							className="border rounded-full px-4 py-2 items-center  bg-rose-400 text-white font-bold hover:bg-rose-500 shadow-lg transition-transform duration-300 hover:-translate-y-[1px]"
+						>
+							<IoIosFunnel className="inline mr-2 mb-1" />
+							Filters
 						</button>
 					</div>
 
@@ -140,6 +173,167 @@ const Inventory = () => {
 				onConfirm={handleDelete}
 				onCancel={() => setItemToDelete(null)}
 			/>
+
+			{/* Filters Settings Modal */}
+			<Modal
+				isOpen={filtersSettingsOpen}
+				onClose={() => setFiltersSettingsOpen(false)}
+			>
+				<div className="flex flex-col">
+					<div className="w-full flex flex-row items-center justify-center mb-4 border-b pb-3">
+						<IoIosFunnel className="text-2xl mr-2" />
+						<h2 className="text-2xl font-semibold">Filter Items</h2>
+					</div>
+					{/* Filter options would go here */}
+					<FormControl className="space-y-5">
+						{/* Status */}
+						<div className="space-y-1">
+							<label className="block text-sm font-semibold text-gray-600">
+								Status
+							</label>
+							<select
+								onChange={(e) => updateFilter('status', e.target.value)}
+								value={filters.status}
+								className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition
+			focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
+			hover:border-gray-400"
+							>
+								<option value="all">All</option>
+								{Object.entries(STATUS_OPTIONS).map(([key, { label }]) => (
+									<option key={key} value={key}>
+										{label}
+									</option>
+								))}
+							</select>
+						</div>
+
+						{/* Sort by Date */}
+						<div className="space-y-1">
+							<label className="block text-sm font-semibold text-gray-600">
+								Sort by Date
+							</label>
+							<select
+								className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition
+								focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
+								hover:border-gray-400"
+								value={filters.sortDate}
+								onChange={(e) => updateFilter('sortDate', e.target.value)}
+							>
+								<option value="asc">Newest to Oldest</option>
+								<option value="desc">Oldest to Newest</option>
+							</select>
+						</div>
+
+						{/* Sort by Price */}
+						<div className="space-y-1">
+							<label className="block text-sm font-semibold text-gray-600">
+								Sort by Price
+							</label>
+							<select
+								className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition
+								focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
+								hover:border-gray-400"
+								value={filters.sortPrice}
+								onChange={(e) => updateFilter('sortPrice', e.target.value)}
+							>
+								<option value="none">None</option>
+								<option value="asc">Low to High</option>
+								<option value="desc">High to Low</option>
+							</select>
+						</div>
+
+						{/* Date Added */}
+						<div className="space-y-1">
+							<label className="block text-sm font-semibold text-gray-600">
+								Date Added
+							</label>
+							<select
+								className="w-full mb-4 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition
+								focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
+								hover:border-gray-400"
+								value={filters.dateRange}
+								onChange={(e) => updateFilter('dateRange', e.target.value)}
+							>
+								<option value="all">All Time</option>
+								<option value="today">Today</option>
+								<option value="week">This Week</option>
+								<option value="month">This Month</option>
+								<option value="year">This Year</option>
+								<option value="custom">Custom Range</option>
+							</select>
+
+							{filters.dateRange === 'custom' && (
+								<div className="flex flex-row space-x-2">
+									<div>
+										<p className="text-sm text-gray-600">Start Date</p>
+										<input
+											type="date"
+											value={filters.customDates.start}
+											onChange={(e) =>
+												updateFilter('customDates', {
+													...filters.customDates,
+													start: e.target.value,
+												})
+											}
+											className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition
+											focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
+											hover:border-gray-400"
+										/>
+									</div>
+									<div>
+										<p className="text-sm text-gray-600">End Date</p>
+										<input
+											type="date"
+											value={filters.customDates.end}
+											onChange={(e) =>
+												updateFilter('customDates', {
+													...filters.customDates,
+													end: e.target.value,
+												})
+											}
+											className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition
+											focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
+											hover:border-gray-400"
+										/>
+									</div>
+								</div>
+							)}
+						</div>
+					</FormControl>
+
+					<div className="mt-6 flex items-center justify-end gap-3">
+						<button
+							type="button"
+							onClick={() => {
+								// reset all filters here
+								updateFilter('status', 'all');
+								updateFilter('sortDate', 'asc');
+								updateFilter('sortPrice', 'none');
+								updateFilter('dateRange', 'all');
+								updateFilter('customDates', { start: '', end: '' });
+								setFiltersSettingsOpen(false);
+							}}
+							className="rounded-full px-4 py-2 text-sm font-medium text-gray-600
+			hover:text-gray-800 hover:bg-gray-100 transition"
+						>
+							Clear all
+						</button>
+
+						<button
+							type="button"
+							onClick={() => {
+								// apply filters here
+								setFiltersSettingsOpen(false);
+							}}
+							className="rounded-full bg-pink-500 px-5 py-2 text-sm font-semibold text-white
+			shadow-sm transition
+			hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+						>
+							Apply
+						</button>
+					</div>
+				</div>
+			</Modal>
 		</div>
 	);
 };
