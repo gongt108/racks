@@ -32,7 +32,7 @@ const ItemCard = ({ item, handleStatusChange, triggerDeleteModal }) => {
 	return (
 		<div
 			key={item.id}
-			className={`${status.bgColor} rounded-lg shadow p-4 flex flex-col`}
+			className={`${status.borderColor} border-2 bg-white rounded-lg shadow p-4 flex flex-col`}
 		>
 			{/* Item image */}
 			<ItemCarousel item={item} id={item.id} />

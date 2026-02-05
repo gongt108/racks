@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FaShirt, FaDollarSign } from 'react-icons/fa6';
 import { BsFillInfoCircleFill } from 'react-icons/bs';
 import { IoIosClose } from 'react-icons/io';
@@ -22,10 +22,15 @@ import {
 	PhotoItem,
 } from '@/utils/fileUploads';
 
+import UploadIcon from '@mui/icons-material/Upload';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+
 const SingleItemInfoCard = ({ item }) => {
 	// const [item, setItem] = useState([]);
 	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
 	const [newPhotos, setNewPhotos] = useState(item.photos || []);
+	const [photos, setPhotos] = useState<PhotoItem[]>([]);
+
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 	const [garmentType, setGarmentType] = useState(item.category || '');
 	const [purchasePrice, setPurchasePrice] = useState<number | null>(
@@ -33,6 +38,14 @@ const SingleItemInfoCard = ({ item }) => {
 	);
 	const [customTags, setCustomTags] = useState<string>('');
 	const [singleItem, setSingleItem] = useState(item || {});
+
+	const bulkRef = useRef<HTMLInputElement | null>(null);
+	const singleRef = useRef<HTMLInputElement | null>(null);
+	const cameraRef = useRef<HTMLInputElement | null>(null);
+
+	const handleBulkClick = () => triggerFileInput(bulkRef);
+	const handleSingleClick = () => triggerFileInput(singleRef);
+	const handleCameraClick = () => triggerFileInput(cameraRef);
 
 	const handleOptionalInfoChange = (field: string, value: string) => {
 		setSingleItem((prev) => ({ ...prev, [field]: value }));
@@ -56,7 +69,40 @@ const SingleItemInfoCard = ({ item }) => {
 
 	return (
 		<div>
-			{i == 0 && (
+			<div className="flex flex-col md:flex-row w-full mt-2">
+				<div
+					onClick={handleSingleClick}
+					className="w-full md:w-1/2 rounded-lg bg-gray-100 border-pink-200 border-2 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition"
+				>
+					<UploadIcon className="text-pink-300" />
+					<p>Upload from device</p>
+					{/* HIDDEN INPUTS */}
+					<input
+						type="file"
+						ref={singleRef}
+						className="hidden"
+						accept="image/*"
+						multiple
+						onChange={(e) => handleSingleUpload(e, setPhotos)}
+					/>
+				</div>
+				<div
+					onClick={handleCameraClick}
+					className="w-full md:w-1/2 rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition"
+				>
+					<CameraAltIcon className="text-pink-300" />
+					<p>Take photo</p>
+					<input
+						type="file"
+						ref={cameraRef}
+						className="hidden"
+						accept="image/*"
+						capture="environment"
+						onChange={(e) => handleSingleUpload(e, setPhotos)}
+					/>
+				</div>
+			</div>
+			{item?.photoUrls?.length > 0 && (
 				<div className="flex flex-col mt-3 mx-4 rounded-lg border ">
 					<div className="flex flex-row justify-between mx-2 my-2 items-center">
 						<h2 className="font-semibold">Photos</h2>
@@ -68,6 +114,7 @@ const SingleItemInfoCard = ({ item }) => {
 							<p>AI Scan</p>
 						</div>
 					</div>
+
 					<div className="grid grid-cols-5 gap-3 mt-3 px-4 pb-8">
 						{item?.photoUrls?.length > 0 &&
 							item?.photoUrls.map((photo, index) => (
@@ -89,6 +136,7 @@ const SingleItemInfoCard = ({ item }) => {
 					</div>
 				</div>
 			)}
+
 			{/* Item classification */}
 			<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4 space-y-2">
 				<div className="flex flex-row space-x-1 items-center">

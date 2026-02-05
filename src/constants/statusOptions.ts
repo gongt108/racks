@@ -2,32 +2,32 @@ export const STATUS_OPTIONS = {
 	listed: {
 		label: 'Listed',
 		textColor: 'text-rose-600',
-		bgColor: 'bg-rose-100',
+		borderColor: 'border-rose-200',
 	},
 	sanitized: {
 		label: 'Sanitized',
 		textColor: 'text-violet-500',
-		bgColor: 'bg-violet-100',
+		borderColor: 'border-violet-200',
 	},
 	racked: {
 		label: 'Racked',
 		textColor: 'text-purple-600',
-		bgColor: 'bg-purple-100',
+		borderColor: 'border-purple-200',
 	},
 	itemized: {
 		label: 'Itemized',
 		textColor: 'text-pink-400',
-		bgColor: 'bg-pink-100',
+		borderColor: 'border-pink-200',
 	},
 	sold: {
 		label: 'Sold',
 		textColor: 'text-green-600',
-		bgColor: 'bg-green-100',
+		borderColor: 'border-green-200',
 	},
 	missingInfo: {
 		label: 'Missing Info',
 		textColor: 'text-red-500',
-		bgColor: 'bg-red-100',
+		borderColor: 'border-red-200',
 	},
 } as const;
 
