@@ -8,7 +8,7 @@ import { IoIosFunnel } from 'react-icons/io';
 import ItemCard from '@/components/ItemCard';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
-import { fetchItems } from '@/utils/items/fetchItemsWithFilters';
+import { fetchItems } from '@/utils/items/fetchItems';
 
 import Modal from '@/components/ui/Modal';
 import { FormControl } from '@mui/material';
