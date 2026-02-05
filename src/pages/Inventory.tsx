@@ -195,7 +195,7 @@ useEffect(() => {
 								focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
 								hover:border-gray-400"
 								value={filters.sortDate}
-								onChange={(e) => updateFilter('sortDate', e.target.value)}
+								onChange={(e) => updateFilter('sortDate', e.target.value as Filters['sortDate'])}
 							>
 								<option value="asc">Newest to Oldest</option>
 								<option value="desc">Oldest to Newest</option>
@@ -212,7 +212,7 @@ useEffect(() => {
 								focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
 								hover:border-gray-400"
 								value={filters.sortPrice}
-								onChange={(e) => updateFilter('sortPrice', e.target.value)}
+								onChange={(e) => updateFilter('sortPrice', e.target.value as Filters['sortPrice'])}
 							>
 								<option value="none">None</option>
 								<option value="asc">Low to High</option>
