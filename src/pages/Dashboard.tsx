@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { supabase } from '@/supabaseClient';
 import { Box, Typography, Stack } from '@mui/material';
 import {
@@ -101,6 +103,12 @@ const Dashboard = () => {
 		return match?.count ?? 0;
 	};
 
+	const navigate = useNavigate();
+
+	const goToCategory = (status) => {
+		navigate(`/inventory?status=${status}`);
+	};
+
 	return (
 		<div className="py-8 flex flex-col space-y-8 w-full">
 			<div className="rounded-xl border border-pink-200 bg-white shadow-lg max-w-[72rem] w-full p-6 mx-auto">
@@ -118,7 +126,10 @@ const Dashboard = () => {
 				{/* Pipeline */}
 				<div className="flex flex-col md:flex-row justify-between space-x-2">
 					{stages.map((stage) => (
-						<div className="relative overflow-visible flex-1">
+						<div
+							className="relative overflow-visible flex-1 cursor-pointer"
+							onClick={() => goToCategory(stage.value)}
+						>
 							<div
 								key={stage.label}
 								style={{ backgroundColor: stage.bgColor }}

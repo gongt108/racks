@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/supabaseClient';
+import { useSearchParams } from 'react-router-dom';
+
 import { FaBoxOpen, FaSearch } from 'react-icons/fa';
 import { IoIosFunnel } from 'react-icons/io';
 
@@ -16,9 +18,12 @@ const Inventory = () => {
 	const [itemToDelete, setItemToDelete] = useState<any | null>(null);
 	const [isEditing, setIsEditing] = useState(false);
 	const [filtersSettingsOpen, setFiltersSettingsOpen] = useState(false);
+	const [searchParams] = useSearchParams();
+
+	const status = searchParams.get('status') || 'all';
 
 	const [filters, setFilters] = useState({
-		status: 'all',
+		status: status,
 		sortDate: 'asc',
 		sortPrice: 'none',
 		dateRange: 'all',
@@ -26,12 +31,6 @@ const Inventory = () => {
 			start: '',
 			end: '',
 		},
-	});
-
-	const [dateRange, setDateRange] = useState('all');
-	const [customDates, setCustomDates] = useState({
-		start: '',
-		end: '',
 	});
 
 	useEffect(() => {
@@ -64,12 +63,28 @@ const Inventory = () => {
 				}),
 			);
 
-			setItems(itemsWithPhotos);
-			console.log(itemsWithPhotos);
+			const filteredItems = itemsWithPhotos.filter((item) => {
+				// Filter by status
+				if (filters.status !== 'all' && item.status !== filters.status) {
+					return false;
+				}
+
+				// Filter by search query
+				if (query && !item.name.toLowerCase().includes(query.toLowerCase())) {
+					return false;
+				}
+
+				// Additional filters like date range can be added here
+
+				return true;
+			});
+
+			setItems(filteredItems);
+			console.log(filteredItems);
 		};
 
 		fetchAndHydrate();
-	}, []);
+	}, [filters]);
 
 	const updateFilter = (key, value) => {
 		setFilters((prev) => ({
