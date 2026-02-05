@@ -67,7 +67,7 @@ const SoldItemCard = ({
 			<div className="flex justify-between items-center mx-2 mt-auto">
 				<FormControl>
 					<div
-						className={`px-3 inline-flex items-center rounded-full ${status.bgColor}`}
+						className={`px-3 inline-flex items-center rounded-full ${status.textColor}`}
 					>
 						<Select
 							value={item.status as StatusKey}
@@ -77,10 +77,10 @@ const SoldItemCard = ({
 							className="text-white text-md cursor-pointer"
 						>
 							{Object.entries(STATUS_OPTIONS).map(
-								([key, { label, bgColor }]) => (
+								([key, { label, textColor }]) => (
 									<MenuItem key={key} value={key}>
 										<div
-											className={`px-3 py-1 rounded-full text-white text-sm ${bgColor}`}
+											className={`px-3 py-1 rounded-full text-white text-sm ${textColor}`}
 										>
 											{label}
 										</div>
