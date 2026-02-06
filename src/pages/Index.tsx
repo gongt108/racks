@@ -167,6 +167,249 @@ const Index = () => {
 	return (
 		<div className="flex flex-1 w-full">
 			<main className="container relative mx-auto px-4 py-8 flex flex-col space-y-8">
+import { useState, useRef, useEffect } from 'react';
+import { supabase } from '@/supabaseClient';
+import { toast } from 'react-toastify';
+
+import { useSettings } from '@/context/SettingsContext';
+import { garmentTypes } from '@/constants/garmentTypes';
+import { prepareImagesForGemini } from '@/utils/fileToBase64';
+import {
+	triggerFileInput,
+	handleBulkUpload,
+	handleSingleUpload,
+	handleDropUpload,
+	removeImage,
+	PhotoItem,
+} from '@/utils/fileUploads';
+import { bulkInsertItems } from '@/utils/addItemsUtils';
+
+import UploadIcon from '@mui/icons-material/Upload';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { FaShirt, FaDollarSign } from 'react-icons/fa6';
+import { BsFillInfoCircleFill, BsRobot } from 'react-icons/bs';
+import { IoIosClose } from 'react-icons/io';
+
+import {
+	MenuItem,
+	Select,
+	FormControl,
+	FormControlLabel,
+	InputLabel,
+	Switch,
+} from '@mui/material';
+import { SelectChangeEvent } from '@mui/material/Select';
+
+const Index = () => {
+	const [garmentType, setGarmentType] = useState('');
+	const [purchasePrice, setPurchasePrice] = useState<number | null>(null);
+	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
+	const [customTags, setCustomTags] = useState('');
+	const [photos, setPhotos] = useState<PhotoItem[]>([]);
+	const [bulkPhotos, setBulkPhotos] = useState<PhotoItem[]>([]);
+	const [isUploading, setIsUploading] = useState(false);
+	const [isAnalyzing, setIsAnalyzing] = useState(false);
+	const [hasOptionalInfo, setHasOptionalInfo] = useState(false);
+
+	const [singleItem, setSingleItem] = useState({
+		listingPrice: null as number | null,
+		source: '',
+		description: '',
+	});
+
+	const bulkRef = useRef<HTMLInputElement | null>(null);
+	const singleRef = useRef<HTMLInputElement | null>(null);
+	const cameraRef = useRef<HTMLInputElement | null>(null);
+
+	const { percentageMarkup, fixedMarkup, isPercentage } = useSettings();
+
+	useEffect(() => {
+		return () => {
+			photos.forEach((img) => URL.revokeObjectURL(img.preview));
+			bulkPhotos.forEach((img) => URL.revokeObjectURL(img.preview));
+		};
+	}, [photos, bulkPhotos]);
+
+	const toggleOptionalInfo = () => setHasOptionalInfo((p) => !p);
+
+	const handleTypeSelection = (event: SelectChangeEvent) => {
+		setGarmentType(event.target.value);
+	};
+
+	const handlePurchasePriceChange = (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		const value = event.target.value;
+		if (/^\d*\.?\d*$/.test(value)) {
+			setPurchasePrice(value ? Number(Number(value).toFixed(2)) : null);
+		}
+	};
+
+	const handleOptionalInfoChange = (field: string, value: string) => {
+		setSingleItem((prev) => ({ ...prev, [field]: value }));
+	};
+
+	const handleAddSingleItem = async () => {
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+
+		if (!user) return alert('Login required');
+		if (!garmentType) return alert('Garment type required');
+		if (!purchasePrice) return alert('Purchase price required');
+
+		try {
+			const listingPrice = autoPricingChecked
+				? Number(
+						(isPercentage
+							? purchasePrice * (percentageMarkup / 100 + 1)
+							: purchasePrice + fixedMarkup
+						).toFixed(2),
+					)
+				: singleItem.listingPrice;
+
+			const { data: item, error } = await supabase
+				.from('items')
+				.insert([
+					{
+						user_id: user.id,
+						category: garmentType,
+						purchase_price: purchasePrice,
+						listing_price: listingPrice,
+						source: singleItem.source || null,
+						description: singleItem.description || null,
+						custom_tags: customTags
+							? customTags.split(',').map((t) => t.trim())
+							: [],
+						status: 'itemized',
+						photos: [],
+					},
+				])
+				.select()
+				.single();
+
+			if (error || !item) throw error;
+
+			const uploaded: string[] = [];
+			for (const photo of photos) {
+				const path = `${user.id}/${item.id}/${crypto.randomUUID()}`;
+				await supabase.storage.from('item-photos').upload(path, photo.file);
+				uploaded.push(path);
+			}
+
+			if (uploaded.length) {
+				await supabase.from('items').update({ photos: uploaded }).eq('id', item.id);
+			}
+
+			toast.success('Item added successfully!');
+			setGarmentType('');
+			setPurchasePrice(null);
+			setPhotos([]);
+			setCustomTags('');
+			setSingleItem({ listingPrice: null, source: '', description: '' });
+		} catch (err) {
+			console.error(err);
+			alert('Failed to add item');
+		}
+	};
+
+	const scanWithAI = async () => {
+		if (!photos.length) return;
+		setIsAnalyzing(true);
+		try {
+			const images = await prepareImagesForGemini(photos);
+			const res = await fetch('/api/gemini', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ images }),
+			});
+			const data = await res.json();
+			setPurchasePrice(data.suggestedPrice);
+			setGarmentType(data.garmentType);
+		} finally {
+			setIsAnalyzing(false);
+		}
+	};
+
+	return (
+		<div className="flex flex-1 w-full">
+			<main className="container relative mx-auto px-4 py-8 flex flex-col space-y-8">
+
+				{/* ================= BULK UPLOAD ================= */}
+				<div
+					onClick={() => triggerFileInput(bulkRef)}
+					className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg shadow-md border-gray-200 cursor-pointer group hover:border-rose-600 transition hover:-translate-y-[2px]"
+					onDragOver={(e) => e.preventDefault()}
+					onDrop={(e) => {
+						e.preventDefault();
+						handleDropUpload(Array.from(e.dataTransfer.files), setBulkPhotos, 100);
+					}}
+				>
+					<div className="flex flex-col md:flex-row">
+						<div className="bg-purple-600 p-3 rounded-md md:mr-3">
+							<PhotoLibraryIcon className="text-white" fontSize="large" />
+						</div>
+
+						<div>
+							<h1 className="text-xl font-bold">Bulk Upload</h1>
+							<p>Upload multiple items at once</p>
+						</div>
+					</div>
+
+					<div className="rounded-lg bg-gray-100 border-2 border-dashed border-pink-200 flex flex-col items-center text-center mt-8 py-8 group-hover:bg-pink-50">
+						<UploadIcon className="text-pink-300" fontSize="large" />
+						<h2 className="font-semibold text-lg">Select Photos</h2>
+					</div>
+
+					<input
+						type="file"
+						ref={bulkRef}
+						className="hidden"
+						multiple
+						onChange={(e) => handleBulkUpload(e, setBulkPhotos)}
+					/>
+
+					{bulkPhotos.length > 0 && (
+						<div className="mt-4 border rounded-lg p-4">
+							<div className="flex justify-between mb-3">
+								<h2 className="font-semibold">Bulk Uploads</h2>
+								<button
+									onClick={() =>
+										bulkInsertItems(bulkPhotos, setBulkPhotos, setIsUploading)
+									}
+									className="bg-gray-200 px-3 py-1 rounded-lg hover:bg-gray-300"
+								>
+									Bulk Add
+								</button>
+							</div>
+
+							<div className="grid grid-cols-2 gap-3">
+								{bulkPhotos.map((photo, i) => (
+									<div key={i} className="relative">
+										<img
+											src={photo.preview}
+											className="w-full h-24 object-cover rounded-lg"
+										/>
+										<button
+											onClick={() =>
+												removeImage(i, bulkPhotos, setBulkPhotos)
+											}
+											className="absolute top-1 right-1 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center"
+										>
+											<IoIosClose />
+										</button>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+				</div>
+
+				{/* ================= SINGLE ITEM ================= */}
+				{/* (unchanged styled single section — same as previous message) */}
 
 				{/* ---------- SINGLE ITEM CARD ---------- */}
 				<div className="mx-4 md:mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 hover:border-rose-600 transition">
