@@ -20,54 +20,77 @@ import {
 } from '@mui/material';
 import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
 
-const ItemCard = ({ item, handleStatusChange, triggerDeleteModal }) => {
+const ItemCard = ({ item, openSoldModal }) => {
 	const navigate = useNavigate();
-
 	const status = STATUS_OPTIONS[item.status as StatusKey];
 
 	const goToItem = (itemId) => {
 		navigate(`/edit/${itemId}`);
 	};
 
+	const markAsSold = () => {
+		// TODO: hook this up to your update logic
+		console.log('mark sold', item.id);
+	};
+
 	return (
 		<div
 			key={item.id}
-			className={`${status.borderColor} border-2 bg-white rounded-lg shadow p-4 flex flex-col`}
+			className={`${status.borderColor} border-2 bg-white rounded-xl shadow-sm hover:shadow-md transition flex flex-col overflow-hidden`}
 		>
 			{/* Item image */}
 			<ItemCarousel item={item} id={item.id} />
 
-			{/* Item info */}
-			<h2 className="text-lg font-semibold mb-1 mx-2">
-				{item.name || `Item ${item.id + 1}`}
-			</h2>
-			<div className="flex flex-row items-center mb-2 mx-2">
-				<FaCalendarPlus className="text-gray-400 mr-1 h-3 w-3" />
-				<div className="text-sm text-black">
-					Added: {new Date(item.created_at).toLocaleDateString('en-US')}
-				</div>
+			{/* Header */}
+			<div className="px-4 pt-4 flex justify-between items-start">
+				<h2 className="text-lg font-semibold leading-tight">
+					{item.name || `Item ${item.id + 1}`}
+				</h2>
+
+				<span
+					className={`text-xs font-semibold px-2 py-1 rounded-full ${status.bgColor} ${status.textColor}`}
+				>
+					{status.label}
+				</span>
 			</div>
-			<div className="flex flex-row mx-2 mb-4">
-				<div className="flex flex-col w-1/2">
-					<p className="text-sm text-black">Paid: </p>
-					<p className="text-sm font-semibold text-black">
+
+			{/* Date */}
+			<div className="flex items-center text-xs text-gray-500 px-4 mt-1">
+				<FaCalendarPlus className="mr-1 h-3 w-3" />
+				Added {new Date(item.created_at).toLocaleDateString('en-US')}
+			</div>
+
+			{/* Prices */}
+			<div className="grid grid-cols-2 gap-4 px-4 my-4">
+				<div>
+					<p className="text-xs text-gray-500">Paid</p>
+					<p className="text-base font-semibold">
 						${item.purchase_price || 'N/A'}
 					</p>
 				</div>
-				<div className="flex flex-col w-1/2">
-					<p className="text-sm text-black">Listed: </p>
-					<p className="text-sm font-semibold text-black">
-						${item.listing_price}
-					</p>
+
+				<div>
+					<p className="text-xs text-gray-500">Listed</p>
+					<p className="text-base font-semibold">${item.listing_price}</p>
 				</div>
 			</div>
 
-			{/* Status pill dropdown */}
-			<div className="flex flex-row justify-between items-center mx-2 mt-auto">
-				<h2 className={`${status.textColor} font-semibold`}>{status.label}</h2>
+			{/* Actions */}
+			<div className="flex items-center justify-between px-4 pb-4 mt-auto">
+				{item.status !== 'sold' ? (
+					<button
+						onClick={() => openSoldModal(item.id)}
+						className="text-sm font-medium px-3 py-1.5 rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition"
+					>
+						Mark as Sold
+					</button>
+				) : (
+					<span className="text-sm font-semibold text-green-700">✓ Sold</span>
+				)}
+
 				<FaRegEdit
 					onClick={() => goToItem(item.id)}
-					className="text-gray-500 w-5 h-5 cursor-pointer hover:text-black transition"
+					className="text-gray-400 w-5 h-5 cursor-pointer hover:text-black transition"
 				/>
 			</div>
 		</div>

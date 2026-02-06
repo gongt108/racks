@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/supabaseClient';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 import { FaBoxOpen, FaSearch } from 'react-icons/fa';
 import { IoIosFunnel } from 'react-icons/io';
@@ -11,13 +11,26 @@ import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
 import { fetchItems, Filters } from '@/utils/fetchItems';
 
 import Modal from '@/components/ui/Modal';
-import { FormControl } from '@mui/material';
+import {
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
+	TextField,
+} from '@mui/material';
 
 const Inventory = () => {
 	const [query, setQuery] = useState('');
 	const [items, setItems] = useState<any[]>([]);
 	const [itemToDelete, setItemToDelete] = useState<any | null>(null);
 	const [isEditing, setIsEditing] = useState(false);
+
+	// Mark as sold modal states
+	const [salePrice, setSalePrice] = useState('');
+	const [platform, setPlatform] = useState('');
+	const [showSoldModal, setShowSoldModal] = useState(false);
+
+	const [selectedItemId, setSelectedItemId] = useState(null);
 	const [filtersSettingsOpen, setFiltersSettingsOpen] = useState(false);
 	const [searchParams] = useSearchParams();
 
@@ -34,35 +47,58 @@ const Inventory = () => {
 		},
 	});
 
-useEffect(() => {
-	const run = async () => {
-		try {
-			const result = await fetchItems(filters, query);
-			setItems(result);
-		} catch (err) {
-			console.error(err);
-		}
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		const run = async () => {
+			try {
+				const result = await fetchItems(filters, query);
+				setItems(result);
+			} catch (err) {
+				console.error(err);
+			}
+		};
+
+		run();
+	}, [filters, query]);
+
+	const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
+		setFilters((prev) => ({ ...prev, [key]: value }));
 	};
 
-	run();
-}, [filters, query]);
+	const openSoldModal = (itemId) => {
+		setSelectedItemId(itemId);
+		setShowSoldModal(true);
+	};
 
+	const closeSoldModal = () => {
+		setShowSoldModal(false);
+		setSelectedItemId(null);
+	};
 
-	const updateFilter = <K extends keyof Filters>(
-	key: K,
-	value: Filters[K]
-) => {
-	setFilters(prev => ({ ...prev, [key]: value }));
-};
+	const confirmMarkSold = async () => {
+		if (!selectedItemId) return;
 
+		console.log(salePrice);
 
-	// Update item status locally
-	const handleStatusChange = (itemId: number, newStatus: StatusKey) => {
-		setItems((prev) =>
-			prev.map((item) =>
-				item.id === itemId ? { ...item, status: newStatus } : item,
-			),
-		);
+		// 1. Update item status
+		const { error: updateError } = await supabase
+			.from('items')
+			.update({
+				status: 'sold',
+				sale_price: parseFloat(salePrice),
+				platform: platform,
+				date_sold: new Date().toISOString(),
+			})
+			.eq('id', selectedItemId);
+
+		if (updateError) {
+			console.error('Error updating item:', updateError);
+			return;
+		}
+
+		closeSoldModal();
+		navigate('/sold');
 	};
 
 	// Open delete modal
@@ -132,8 +168,7 @@ useEffect(() => {
 						<ItemCard
 							key={item.id}
 							item={item}
-							triggerDeleteModal={triggerDeleteModal}
-							handleStatusChange={handleStatusChange}
+							openSoldModal={() => openSoldModal(item.id)}
 						/>
 					))}
 				</div>
@@ -195,7 +230,12 @@ useEffect(() => {
 								focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
 								hover:border-gray-400"
 								value={filters.sortDate}
-								onChange={(e) => updateFilter('sortDate', e.target.value as Filters['sortDate'])}
+								onChange={(e) =>
+									updateFilter(
+										'sortDate',
+										e.target.value as Filters['sortDate'],
+									)
+								}
 							>
 								<option value="asc">Newest to Oldest</option>
 								<option value="desc">Oldest to Newest</option>
@@ -212,7 +252,12 @@ useEffect(() => {
 								focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
 								hover:border-gray-400"
 								value={filters.sortPrice}
-								onChange={(e) => updateFilter('sortPrice', e.target.value as Filters['sortPrice'])}
+								onChange={(e) =>
+									updateFilter(
+										'sortPrice',
+										e.target.value as Filters['sortPrice'],
+									)
+								}
 							>
 								<option value="none">None</option>
 								<option value="asc">Low to High</option>
@@ -311,6 +356,74 @@ useEffect(() => {
 						</button>
 					</div>
 				</div>
+			</Modal>
+
+			{/* Mark as Sold Modal */}
+			<Modal isOpen={showSoldModal} onClose={() => closeSoldModal()}>
+				{showSoldModal && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+						<div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-6">
+							<h2 className="text-lg font-semibold mb-2">Mark item as sold?</h2>
+
+							<p className="text-sm text-gray-600 mb-6">
+								This will move the item to your Sold inventory.
+							</p>
+
+							<form
+								onSubmit={(e) => {
+									e.preventDefault();
+									confirmMarkSold();
+								}}
+								className="space-y-4"
+							>
+								{/* Sale Price */}
+								<TextField
+									label="Sale price"
+									value={salePrice}
+									onChange={(e) => setSalePrice(e.target.value)}
+									placeholder="$0.00"
+									size="small"
+									fullWidth
+								/>
+
+								{/* Platform */}
+								<FormControl fullWidth size="small">
+									<InputLabel id="platform-label">Platform</InputLabel>
+									<Select
+										labelId="platform-label"
+										label="Platform"
+										value={platform}
+										onChange={(e) => setPlatform(e.target.value)}
+									>
+										<MenuItem value="poshmark">Poshmark</MenuItem>
+										<MenuItem value="mercari">Mercari</MenuItem>
+										<MenuItem value="ebay">eBay</MenuItem>
+										<MenuItem value="facebook">Facebook Marketplace</MenuItem>
+										<MenuItem value="other">Other</MenuItem>
+									</Select>
+								</FormControl>
+
+								{/* Actions */}
+								<div className="flex justify-end gap-3 pt-2">
+									<button
+										type="button"
+										onClick={closeSoldModal}
+										className="px-4 py-2 text-sm rounded-md border hover:bg-gray-100"
+									>
+										Cancel
+									</button>
+
+									<button
+										type="submit"
+										className="px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700"
+									>
+										Yes, mark sold
+									</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				)}
 			</Modal>
 		</div>
 	);
