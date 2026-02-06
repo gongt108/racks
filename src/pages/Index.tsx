@@ -86,6 +86,7 @@ const Index = () => {
 		const {
 			data: { user },
 		} = await supabase.auth.getUser();
+
 		if (!user) return alert('Login required');
 		if (!garmentType) return alert('Garment type required');
 		if (!purchasePrice) return alert('Purchase price required');
@@ -125,27 +126,21 @@ const Index = () => {
 			const uploaded: string[] = [];
 			for (const photo of photos) {
 				const path = `${user.id}/${item.id}/${crypto.randomUUID()}`;
-				const { error: uploadError } = await supabase.storage
-					.from('item-photos')
-					.upload(path, photo.file);
-				if (uploadError) throw uploadError;
+				await supabase.storage.from('item-photos').upload(path, photo.file);
 				uploaded.push(path);
 			}
 
 			if (uploaded.length) {
-				await supabase
-					.from('items')
-					.update({ photos: uploaded })
-					.eq('id', item.id);
+				await supabase.from('items').update({ photos: uploaded }).eq('id', item.id);
 			}
 
-			toast.success('Item added!');
+			toast.success('Item added successfully!');
 			setGarmentType('');
 			setPurchasePrice(null);
 			setPhotos([]);
 			setCustomTags('');
 			setSingleItem({ listingPrice: null, source: '', description: '' });
-		} catch (err: any) {
+		} catch (err) {
 			console.error(err);
 			alert('Failed to add item');
 		}
@@ -171,136 +166,178 @@ const Index = () => {
 
 	return (
 		<div className="flex flex-1 w-full">
-			<main className="container mx-auto px-4 py-8 flex flex-col space-y-8">
+			<main className="container relative mx-auto px-4 py-8 flex flex-col space-y-8">
 
-				{/* BULK */}
-				<div
-					onClick={() => triggerFileInput(bulkRef)}
-					onDragOver={(e) => e.preventDefault()}
-					onDrop={(e) => {
-						e.preventDefault();
-						handleDropUpload(Array.from(e.dataTransfer.files), setBulkPhotos, 100);
-					}}
-					className="border-2 rounded-lg p-8 cursor-pointer"
-				>
-					<PhotoLibraryIcon />
-					<input
-						ref={bulkRef}
-						type="file"
-						multiple
-						className="hidden"
-						onChange={(e) => handleBulkUpload(e, setBulkPhotos)}
-					/>
+				{/* ---------- SINGLE ITEM CARD ---------- */}
+				<div className="mx-4 md:mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 hover:border-rose-600 transition">
 
-					{bulkPhotos.length > 0 && (
-						<button
-							onClick={() =>
-								bulkInsertItems(bulkPhotos, setBulkPhotos, setIsUploading)
-							}
+					{/* PHOTOS */}
+					<p className="font-semibold mt-2">Item Photos (up to 5)</p>
+
+					<div className="flex flex-col md:flex-row w-full mt-2">
+						<div
+							onClick={() => triggerFileInput(singleRef)}
+							className="w-full md:w-1/2 rounded-lg bg-gray-100 border-pink-200 border-2 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg transition"
 						>
-							Bulk Add
-						</button>
-					)}
-				</div>
+							<UploadIcon className="text-pink-300" />
+							<p>Upload from device</p>
+							<input
+								ref={singleRef}
+								type="file"
+								multiple
+								className="hidden"
+								onChange={(e) => handleSingleUpload(e, setPhotos)}
+							/>
+						</div>
 
-				{/* SINGLE */}
-				<div className="border-2 rounded-lg p-8">
-					<p>Photos</p>
+						<div
+							onClick={() => triggerFileInput(cameraRef)}
+							className="w-full md:w-1/2 rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg transition"
+						>
+							<CameraAltIcon className="text-pink-300" />
+							<p>Take photo</p>
+							<input
+								ref={cameraRef}
+								type="file"
+								capture="environment"
+								className="hidden"
+								onChange={(e) => handleSingleUpload(e, setPhotos)}
+							/>
+						</div>
+					</div>
 
-					<button onClick={() => triggerFileInput(singleRef)}>
-						Upload
-					</button>
-
-					<input
-						ref={singleRef}
-						type="file"
-						multiple
-						className="hidden"
-						onChange={(e) => handleSingleUpload(e, setPhotos)}
-					/>
-
+					{/* PHOTO GRID */}
 					{photos.length > 0 && (
-						<button onClick={scanWithAI}>
-							<BsRobot /> AI Scan
-						</button>
+						<div className="flex flex-col mt-4 rounded-lg border p-3">
+							<div className="flex justify-between items-center mb-3">
+								<h2 className="font-semibold">Photos</h2>
+								<button
+									onClick={scanWithAI}
+									className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-lg hover:bg-gray-300"
+								>
+									<BsRobot /> AI Scan
+								</button>
+							</div>
+
+							<div className="grid grid-cols-2 gap-3">
+								{photos.map((photo, i) => (
+									<div key={i} className="relative">
+										<img
+											src={photo.preview}
+											className="w-full h-24 object-cover rounded-lg"
+										/>
+										<button
+											onClick={() => removeImage(i, photos, setPhotos)}
+											className="absolute top-1 right-1 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-white"
+										>
+											<IoIosClose />
+										</button>
+									</div>
+								))}
+							</div>
+						</div>
 					)}
 
 					{/* GARMENT */}
-					<FormControl fullWidth>
-						<InputLabel>Garment</InputLabel>
-						<Select value={garmentType} onChange={handleTypeSelection}>
-							{garmentTypes.map((t) => (
-								<MenuItem key={t.value} value={t.value}>
-									<t.icon /> {t.label}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+					<div className="rounded-lg bg-gray-100 border flex flex-col my-6 p-4 space-y-2">
+						<div className="flex items-center gap-2">
+							<FaShirt className="text-purple-400" />
+							<h2 className="font-semibold text-lg">Item Classification</h2>
+						</div>
 
-					{/* PRICE */}
-					<input
-						value={purchasePrice ?? ''}
-						onChange={handlePurchasePriceChange}
-						placeholder="Purchase Price"
-					/>
+						<FormControl fullWidth>
+							<InputLabel>Select Garment type...</InputLabel>
+							<Select value={garmentType} onChange={handleTypeSelection}>
+								{garmentTypes.map((type) => (
+									<MenuItem key={type.value} value={type.value}>
+										<type.icon /> {type.label}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					</div>
 
-					<FormControlLabel
-						control={
-							<Switch
-								checked={autoPricingChecked}
-								onChange={(e) => setAutoPricingChecked(e.target.checked)}
-							/>
-						}
-						label="Auto pricing"
-					/>
+					{/* PRICING */}
+					<div className="rounded-lg bg-gray-100 border flex flex-col my-6 p-4 space-y-3">
+						<div className="flex items-center gap-2">
+							<FaDollarSign className="text-blue-500" />
+							<h2 className="font-semibold text-lg">Pricing</h2>
+						</div>
 
-					{/* OPTIONAL — COLLAPSIBLE */}
-					<div className="border rounded-lg mt-6">
+						<input
+							value={purchasePrice ?? ''}
+							onChange={handlePurchasePriceChange}
+							placeholder="Purchase price"
+							className="border rounded-xl px-4 py-2"
+						/>
+
+						<FormControlLabel
+							control={
+								<Switch
+									checked={autoPricingChecked}
+									onChange={(e) => setAutoPricingChecked(e.target.checked)}
+								/>
+							}
+							label="Auto pricing"
+						/>
+					</div>
+
+					{/* OPTIONAL COLLAPSIBLE */}
+					<div className="rounded-lg bg-gray-100 border my-6">
 						<button
 							type="button"
 							onClick={toggleOptionalInfo}
-							className="p-4 font-semibold w-full text-left"
+							className="flex justify-between w-full p-4 font-semibold hover:bg-gray-200"
 						>
-							Optional Info ({hasOptionalInfo ? 'Hide' : 'Show'})
+							Item Details (optional)
+							<span>{hasOptionalInfo ? 'Hide' : 'Show'}</span>
 						</button>
 
 						{hasOptionalInfo && (
-							<div className="p-4 space-y-3">
+							<div className="px-4 pb-4 space-y-3">
 								<input
 									value={singleItem.source}
 									onChange={(e) =>
 										handleOptionalInfoChange('source', e.target.value)
 									}
 									placeholder="Source"
+									className="border rounded-xl px-4 py-2 w-full"
 								/>
-
 								<input
 									value={singleItem.description}
 									onChange={(e) =>
 										handleOptionalInfoChange('description', e.target.value)
 									}
 									placeholder="Description"
+									className="border rounded-xl px-4 py-2 w-full"
 								/>
-
 								<input
 									value={customTags}
 									onChange={(e) => setCustomTags(e.target.value)}
-									placeholder="tags"
+									placeholder="Tags"
+									className="border rounded-xl px-4 py-2 w-full"
 								/>
 							</div>
 						)}
 					</div>
 
-					<button onClick={handleAddSingleItem}>
+					<button
+						onClick={handleAddSingleItem}
+						className="bg-pink-400 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full mx-auto block mt-6"
+					>
 						Add Item
 					</button>
 				</div>
 
-				{isAnalyzing && <div>AI scanning…</div>}
+				{isAnalyzing && (
+					<div className="fixed p-4 bg-blue-50 border rounded-lg animate-pulse">
+						Gemini AI scanning…
+					</div>
+				)}
 
 				{isUploading && (
-					<div>
-						<CircularProgress />
+					<div className="fixed p-6 bg-blue-50 border rounded-lg flex flex-col items-center gap-3">
+						<CircularProgress size={60} />
 						Uploading…
 					</div>
 				)}
