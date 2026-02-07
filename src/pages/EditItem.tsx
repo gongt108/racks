@@ -21,9 +21,9 @@ import {
 	Switch,
 	SelectChangeEvent,
 } from '@mui/material';
+import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
 
 const EditItem = () => {
-	// const status = STATUS_OPTIONS[item.status as StatusKey];
 	const [isLoading, setIsLoading] = useState(true);
 	const [updatedItem, setUpdateditem] = useState({});
 	const [photos, setPhotos] = useState<string[]>([]);
@@ -96,16 +96,70 @@ const EditItem = () => {
 	};
 
 	return (
-		<div className="flex flex-col w-full h-full relative">
-			{isLoading ? (
-				<div className="flex justify-center items-center h-full">
-					<p>Loading item details...</p>
-				</div>
-			) : (
-				<div className="p-6 w-full max-w-[48rem] mx-auto">
-					<SingleItemInfoCard item={updatedItem} />
+		<div className="flex flex-col w-full h-[75vh]">
+			{/* Top action bar: stays visible */}
+			{!isLoading && (
+				<div className="flex flex-row space-x-4 sticky top-0 z-10 bg-white/80 backdrop-blur-sm p-4 border-b border-gray-200 justify-center">
+					<button
+						onClick={handleDelete}
+						className="bg-teal-300 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center"
+					>
+						<FaTrashAlt className="mr-2" />
+						Update Item
+					</button>
+					<div
+						onClick={handleDelete}
+						className="hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center"
+					>
+						<FormControl fullWidth className="w-64">
+							{' '}
+							{/* Apply a Tailwind width utility */}
+							<InputLabel id="select-label">Select Garment type...</InputLabel>
+							<Select
+								labelId="select-label"
+								id="simple-select"
+								// value={garmentType || ''}
+								// onChange={handleTypeSelection}
+								className="text-sm border-gray-300 rounded-lg shadow-sm" // Apply Tailwind styles
+							>
+								{garmentTypes.map((type) => {
+									const Icon = type.icon;
+									return (
+										<MenuItem
+											key={type.value}
+											value={type.value}
+											className="flex space-x-2"
+										>
+											<Icon />
+											<p>{type.label}</p>
+										</MenuItem>
+									);
+								})}
+							</Select>
+						</FormControl>
+					</div>
+					<button
+						onClick={handleDelete}
+						className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center"
+					>
+						<FaTrashAlt className="mr-2" />
+						Delete Item
+					</button>
 				</div>
 			)}
+
+			{/* Scrollable content */}
+			<div className="flex-1 overflow-y-auto">
+				{isLoading ? (
+					<div className="flex justify-center items-center h-full">
+						<p>Loading item details...</p>
+					</div>
+				) : (
+					<div className="w-full max-w-[56rem] mx-auto p-6">
+						<SingleItemInfoCard item={updatedItem} />
+					</div>
+				)}
+			</div>
 		</div>
 	);
 };
