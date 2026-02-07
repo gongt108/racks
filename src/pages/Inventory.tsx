@@ -1,15 +1,3 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/supabaseClient';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-
-import { FaBoxOpen, FaSearch } from 'react-icons/fa';
-import { IoIosFunnel } from 'react-icons/io';
-
-import ItemCard from '@/components/ItemCard';
-import ConfirmModal from '@/components/ui/ConfirmModal';
-import { STATUS_OPTIONS, StatusKey } from '@/constants/statusOptions';
-import { fetchItems, Filters } from '@/utils/fetchItems';
-
 import Modal from '@/components/ui/Modal';
 import {
 	FormControl,
@@ -18,6 +6,7 @@ import {
 	MenuItem,
 	TextField,
 } from '@mui/material';
+import { toast } from 'react-toastify';
 
 const Inventory = () => {
 	const [query, setQuery] = useState('');
@@ -30,7 +19,7 @@ const Inventory = () => {
 	const [platform, setPlatform] = useState('');
 	const [showSoldModal, setShowSoldModal] = useState(false);
 
-	const [selectedItemId, setSelectedItemId] = useState(null);
+	const [selectedItem, setSelectedItem] = useState(null);
 	const [filtersSettingsOpen, setFiltersSettingsOpen] = useState(false);
 	const [searchParams] = useSearchParams();
 
@@ -66,31 +55,41 @@ const Inventory = () => {
 		setFilters((prev) => ({ ...prev, [key]: value }));
 	};
 
-	const openSoldModal = (itemId) => {
-		setSelectedItemId(itemId);
+	const openSoldModal = (item) => {
+		setSelectedItem(item);
 		setShowSoldModal(true);
 	};
 
 	const closeSoldModal = () => {
 		setShowSoldModal(false);
-		setSelectedItemId(null);
+		setSelectedItem(null);
 	};
 
 	const confirmMarkSold = async () => {
-		if (!selectedItemId) return;
+		if (!selectedItem) return;
 
-		console.log(salePrice);
+		if (selectedItem.status === 'sold') {
+			toast.error('Item is already marked as sold');
+			return;
+		}
+
+		if (selectedItem.status === 'missing') {
+			toast.error(
+				'Item is missing information and cannot be marked as sold. Please edit the item details first.',
+			);
+			return;
+		}
 
 		// 1. Update item status
 		const { error: updateError } = await supabase
 			.from('items')
 			.update({
 				status: 'sold',
-				sale_price: parseFloat(salePrice),
+				sale_price: parseFloat(salePrice).toFixed(2),
 				platform: platform,
 				date_sold: new Date().toISOString(),
 			})
-			.eq('id', selectedItemId);
+			.eq('id', selectedItem.id);
 
 		if (updateError) {
 			console.error('Error updating item:', updateError);
@@ -168,7 +167,7 @@ const Inventory = () => {
 						<ItemCard
 							key={item.id}
 							item={item}
-							openSoldModal={() => openSoldModal(item.id)}
+							openSoldModal={() => openSoldModal(item)}
 						/>
 					))}
 				</div>
