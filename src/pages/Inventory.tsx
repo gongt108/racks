@@ -68,6 +68,18 @@ const Inventory = () => {
 	};
 
 	const openSoldModal = (item) => {
+		if (item.status === 'missing') {
+			toast.error(
+				'Item is missing information and cannot be marked as sold. Please edit the item details first.',
+			);
+			return;
+		}
+
+		if (item.status === 'sold') {
+			toast.error('Item is already marked as sold');
+			return;
+		}
+
 		setSelectedItem(item);
 		setShowSoldModal(true);
 	};
@@ -79,18 +91,6 @@ const Inventory = () => {
 
 	const confirmMarkSold = async () => {
 		if (!selectedItem) return;
-
-		if (selectedItem.status === 'sold') {
-			toast.error('Item is already marked as sold');
-			return;
-		}
-
-		if (selectedItem.status === 'missing') {
-			toast.error(
-				'Item is missing information and cannot be marked as sold. Please edit the item details first.',
-			);
-			return;
-		}
 
 		// 1. Update item status
 		const { error: updateError } = await supabase

@@ -1,4 +1,5 @@
 import { supabase } from '@/supabaseClient';
+import Fuse from 'fuse.js';
 
 export type Filters = {
 	status: string;
@@ -21,41 +22,40 @@ export async function fetchItems(filters: Filters, searchQuery?: string) {
 
 	// ✅ date filters (DB-side)
 	// date filters (DB-side)
-const now = new Date();
+	const now = new Date();
 
-if (filters.dateRange === 'today') {
-	const start = new Date();
-	start.setHours(0, 0, 0, 0);
-	query = query.gte('created_at', start.toISOString());
-}
-
-if (filters.dateRange === 'week') {
-	const start = new Date();
-	start.setDate(now.getDate() - 7);
-	query = query.gte('created_at', start.toISOString());
-}
-
-if (filters.dateRange === 'month') {
-	const start = new Date();
-	start.setMonth(now.getMonth() - 1);
-	query = query.gte('created_at', start.toISOString());
-}
-
-if (filters.dateRange === 'year') {
-	const start = new Date();
-	start.setFullYear(now.getFullYear() - 1);
-	query = query.gte('created_at', start.toISOString());
-}
-
-if (filters.dateRange === 'custom') {
-	if (filters.customDates.start) {
-		query = query.gte('created_at', filters.customDates.start);
+	if (filters.dateRange === 'today') {
+		const start = new Date();
+		start.setHours(0, 0, 0, 0);
+		query = query.gte('created_at', start.toISOString());
 	}
-	if (filters.customDates.end) {
-		query = query.lte('created_at', filters.customDates.end);
-	}
-}
 
+	if (filters.dateRange === 'week') {
+		const start = new Date();
+		start.setDate(now.getDate() - 7);
+		query = query.gte('created_at', start.toISOString());
+	}
+
+	if (filters.dateRange === 'month') {
+		const start = new Date();
+		start.setMonth(now.getMonth() - 1);
+		query = query.gte('created_at', start.toISOString());
+	}
+
+	if (filters.dateRange === 'year') {
+		const start = new Date();
+		start.setFullYear(now.getFullYear() - 1);
+		query = query.gte('created_at', start.toISOString());
+	}
+
+	if (filters.dateRange === 'custom') {
+		if (filters.customDates.start) {
+			query = query.gte('created_at', filters.customDates.start);
+		}
+		if (filters.customDates.end) {
+			query = query.lte('created_at', filters.customDates.end);
+		}
+	}
 
 	// ✅ sorting (DB-side)
 	if (filters.sortDate !== 'none') {
@@ -77,7 +77,7 @@ if (filters.dateRange === 'custom') {
 	}
 
 	// ✅ hydrate photo signed URLs
-	const itemsWithPhotos = await Promise.all(
+	const updatedItems = await Promise.all(
 		data.map(async (item) => {
 			if (!item.photos?.length) return item;
 
@@ -99,12 +99,28 @@ if (filters.dateRange === 'custom') {
 	);
 
 	// ✅ client-side search filter
-	const filtered = itemsWithPhotos.filter((item) => {
-		if (!searchQuery) return true;
-		return item.name
-			?.toLowerCase()
-			.includes(searchQuery.toLowerCase());
+
+	const fuse = new Fuse(updatedItems, {
+		keys: ['name', 'brand', 'description'],
+		threshold: 0.4, // lower = stricter, higher = fuzzier
+		ignoreLocation: true,
+		minMatchCharLength: 2,
 	});
+
+	const filtered = searchQuery
+		? fuse.search(searchQuery).map((result) => result.item)
+		: updatedItems;
+
+	// const filtered = updatedItems.filter((item) => {
+	// 	if (!searchQuery) return true;
+	// 	const fields = ['name', 'source', 'description'];
+
+	// 	return fields.some((field) => {
+	// 		return item[field]
+	// 			?.toLowerCase()
+	// 			.includes(searchQuery.trim().toLowerCase());
+	// 	});
+	// });
 
 	return filtered;
 }
