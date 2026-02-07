@@ -3,6 +3,8 @@ import { supabase } from '@/supabaseClient';
 import { toast } from 'react-toastify';
 
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/hooks/useAuth';
+
 import { garmentTypes } from '@/constants/garmentTypes';
 import { prepareImagesForGemini } from '@/utils/fileToBase64';
 import {
@@ -13,7 +15,6 @@ import {
 	removeImage,
 	PhotoItem,
 } from '@/utils/fileUploads';
-import { bulkInsertItems } from '@/utils/addItemsUtils';
 
 import UploadIcon from '@mui/icons-material/Upload';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
@@ -32,13 +33,13 @@ import {
 	InputLabel,
 	Switch,
 } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
+import { bulkInsertItems } from '@/utils/addItemsUtils';
 
 const Index = () => {
 	const [garmentType, setGarmentType] = useState('');
 	const [purchasePrice, setPurchasePrice] = useState<number | null>(null);
 	const [autoPricingChecked, setAutoPricingChecked] = useState(true);
-	const [customTags, setCustomTags] = useState('');
+	const [customTags, setCustomTags] = useState<string>('');
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
 	const [bulkPhotos, setBulkPhotos] = useState<PhotoItem[]>([]);
 	const [isUploading, setIsUploading] = useState(false);
@@ -46,16 +47,18 @@ const Index = () => {
 	const [hasOptionalInfo, setHasOptionalInfo] = useState(false);
 
 	const [singleItem, setSingleItem] = useState({
+		photos: [] as File[],
+		category: '',
+		purchasePrice: null as number | null,
 		listingPrice: null as number | null,
 		source: '',
 		description: '',
+		customTags: [],
 	});
 
 	const bulkRef = useRef<HTMLInputElement | null>(null);
 	const singleRef = useRef<HTMLInputElement | null>(null);
 	const cameraRef = useRef<HTMLInputElement | null>(null);
-
-	const { percentageMarkup, fixedMarkup, isPercentage } = useSettings();
 
 	useEffect(() => {
 		return () => {
@@ -63,23 +66,32 @@ const Index = () => {
 		};
 	}, [photos]);
 
-	const toggleOptionalInfo = () => setHasOptionalInfo((p) => !p);
+	const { percentageMarkup, fixedMarkup, isPercentage } = useSettings();
 
-	const handleTypeSelection = (event: SelectChangeEvent) => {
+	const handleBulkClick = () => triggerFileInput(bulkRef);
+	const handleSingleClick = () => triggerFileInput(singleRef);
+	const handleCameraClick = () => triggerFileInput(cameraRef);
+
+	const handleTypeSelection = (event) => {
 		setGarmentType(event.target.value);
 	};
 
-	const handlePurchasePriceChange = (
-		event: React.ChangeEvent<HTMLInputElement>,
-	) => {
+	const handlePurchasePriceChange = (event) => {
 		const value = event.target.value;
+		// Allow only numbers and decimal
 		if (/^\d*\.?\d*$/.test(value)) {
-			setPurchasePrice(value ? Number(Number(value).toFixed(2)) : null);
+			const numericValue = Number(Number(value).toFixed(2));
+			setPurchasePrice(numericValue);
 		}
 	};
 
+	const toggleOptionalInfo = () => setHasOptionalInfo((p) => !p);
+
 	const handleOptionalInfoChange = (field: string, value: string) => {
-		setSingleItem((prev) => ({ ...prev, [field]: value }));
+		setSingleItem((prevState) => ({
+			...prevState,
+			[field]: value,
+		}));
 	};
 
 	const handleAddSingleItem = async () => {
@@ -101,7 +113,7 @@ const Index = () => {
 					)
 				: singleItem.listingPrice;
 
-			const { data: item, error } = await supabase
+			const { data: item, error: itemError } = await supabase
 				.from('items')
 				.insert([
 					{
@@ -111,54 +123,86 @@ const Index = () => {
 						listing_price: listingPrice,
 						source: singleItem.source || null,
 						description: singleItem.description || null,
-						custom_tags: customTags
-							? customTags.split(',').map((t) => t.trim())
-							: [],
+						custom_tags: customTags.trim().length ? customTags.split(', ') : '',
 						status: 'itemized',
-						photos: [],
+						photos: [], // filled after upload
 					},
 				])
 				.select()
 				.single();
 
-			if (error || !item) throw error;
+			if (itemError || !item) throw itemError;
 
-			const uploaded: string[] = [];
+			// Upload photos to Supabase Storage
+			const uploadedPhotoPaths: string[] = [];
+
 			for (const photo of photos) {
-				const path = `${user.id}/${item.id}/${crypto.randomUUID()}`;
-				await supabase.storage.from('item-photos').upload(path, photo.file);
-				uploaded.push(path);
+				const filePath = `${user.id}/${item.id}/${crypto.randomUUID()}`;
+
+				const { error: uploadError } = await supabase.storage
+					.from('item-photos')
+					.upload(filePath, photo.file);
+
+				if (uploadError) throw uploadError;
+
+				// const { data: publicUrlData } = supabase.storage
+				// 	.from('item-photos')
+				// 	.getPublicUrl(filePath);
+
+				uploadedPhotoPaths.push(filePath);
 			}
 
-			if (uploaded.length) {
-				await supabase.from('items').update({ photos: uploaded }).eq('id', item.id);
+			// Update item with photo URLs
+			if (uploadedPhotoPaths.length > 0) {
+				const { error: updateError } = await supabase
+					.from('items')
+					.update({ photos: uploadedPhotoPaths })
+					.eq('id', item.id);
+
+				if (updateError) throw updateError;
 			}
 
+			console.log('Item created with photos:', item.id);
 			toast.success('Item added successfully!');
+
+			// Reset form
 			setGarmentType('');
 			setPurchasePrice(null);
 			setPhotos([]);
-			setCustomTags('');
-			setSingleItem({ listingPrice: null, source: '', description: '' });
+			setSingleItem({
+				photos: [],
+				category: '',
+				purchasePrice: null,
+				listingPrice: null,
+				source: '',
+				description: '',
+				customTags: [],
+			});
 		} catch (err) {
-			console.error(err);
-			alert('Failed to add item');
+			console.error(err.message);
+			alert('Failed to add item. Please try again.');
 		}
 	};
 
 	const scanWithAI = async () => {
-		if (!photos.length) return;
+		if (photos.length === 0) return;
+
 		setIsAnalyzing(true);
 		try {
 			const images = await prepareImagesForGemini(photos);
-			const res = await fetch('/api/gemini', {
+
+			const response = await fetch('/api/gemini', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ images }),
 			});
-			const data = await res.json();
+
+			const data = await response.json();
+			console.log(data);
 			setPurchasePrice(data.suggestedPrice);
 			setGarmentType(data.garmentType);
+		} catch (err: any) {
+			console.error('Error scanning images:', err.message);
 		} finally {
 			setIsAnalyzing(false);
 		}
@@ -167,69 +211,80 @@ const Index = () => {
 	return (
 		<div className="flex flex-1 w-full">
 			<main className="container relative mx-auto px-4 py-8 flex flex-col space-y-8">
-
-		{/* ================= BULK UPLOAD ================= */}
+				{/* BULK UPLOAD */}
 				<div
-					onClick={() => triggerFileInput(bulkRef)}
-					className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg shadow-md border-gray-200 cursor-pointer group hover:border-rose-600 transition hover:-translate-y-[2px]"
+					onClick={handleBulkClick}
+					className="mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg shadow-md border-gray-200 cursor-pointer group hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]"
 					onDragOver={(e) => e.preventDefault()}
 					onDrop={(e) => {
 						e.preventDefault();
-						handleDropUpload(Array.from(e.dataTransfer.files), setBulkPhotos, 100);
+						const files = Array.from(e.dataTransfer.files);
+						handleDropUpload(files, setBulkPhotos, 100);
 					}}
 				>
-					<div className="flex flex-col md:flex-row">
-						<div className="bg-purple-600 p-3 rounded-md md:mr-3">
-							<PhotoLibraryIcon className="text-white" fontSize="large" />
+					<div className="flex flex-col items-center text-center md:items-start md:text-start md:flex-row">
+						<div className="bg-purple-600 shadow-lg shadow-purple-500/50 w-fit p-3 rounded-md md:mr-2">
+							<PhotoLibraryIcon
+								className="w-6 h-6 text-white"
+								fontSize="large"
+							/>
 						</div>
-
-						<div>
+						<div className="flex flex-col space-between">
 							<h1 className="text-xl font-bold">Bulk Upload</h1>
-							<p>Upload multiple items at once</p>
+							<p className="text-md">
+								Upload multiple items at once from your gallery
+							</p>
+							<p className="text-sm text-gray-300">
+								Note: you will need to add item information in the inventory
+								tab.
+							</p>
 						</div>
 					</div>
-
-					<div className="rounded-lg bg-gray-100 border-2 border-dashed border-pink-200 flex flex-col items-center text-center mt-8 py-8 group-hover:bg-pink-50">
-						<UploadIcon className="text-pink-300" fontSize="large" />
+					<div className="rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 mt-16 mb-8 py-8 px-4 space-y-2 group-hover:border-rose-400 group-hover:bg-pink-50 group-hover:shadow-lg group-hover:shadow-pink-100 transition">
+						<UploadIcon className="text-pink-300 w-6 h-6" fontSize="large" />
 						<h2 className="font-semibold text-lg">Select Photos</h2>
+						<p>Choose multiple images</p>
 					</div>
-
+					{/* HIDDEN INPUTS */}
 					<input
 						type="file"
 						ref={bulkRef}
 						className="hidden"
+						accept="image/*"
 						multiple
 						onChange={(e) => handleBulkUpload(e, setBulkPhotos)}
 					/>
 
+					{/* Bulk upload photo container */}
 					{bulkPhotos.length > 0 && (
-						<div className="mt-4 border rounded-lg p-4">
-							<div className="flex justify-between mb-3">
+						<div className="flex flex-col mt-3 mx-4 rounded-lg border">
+							<div className="flex flex-row justify-between mx-2 my-2 items-center">
 								<h2 className="font-semibold">Bulk Uploads</h2>
-								<button
+								<div
 									onClick={() =>
 										bulkInsertItems(bulkPhotos, setBulkPhotos, setIsUploading)
 									}
-									className="bg-gray-200 px-3 py-1 rounded-lg hover:bg-gray-300"
+									className=" flex flex-row items-center rounded-lg bg-gray-200 text-grey-300 px-2 py-1 text-gray-500 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md font-semibold cursor-pointer"
 								>
-									Bulk Add
-								</button>
+									<p>Bulk Add</p>
+								</div>
 							</div>
-
-							<div className="grid grid-cols-2 gap-3">
-								{bulkPhotos.map((photo, i) => (
-									<div key={i} className="relative">
+							<div className="grid grid-cols-2 gap-3 mt-3">
+								{bulkPhotos.map((photo, index) => (
+									<div key={index} className="relative group">
 										<img
 											src={photo.preview}
+											alt=""
 											className="w-full h-24 object-cover rounded-lg"
 										/>
 										<button
+											type="button"
 											onClick={() =>
-												removeImage(i, bulkPhotos, setBulkPhotos)
+												removeImage(index, bulkPhotos, setBulkPhotos)
 											}
-											className="absolute top-1 right-1 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center"
+											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center bg-red-600 cursor-pointer"
 										>
-											<IoIosClose />
+											<IoIosClose className="w-3 h-3" />
 										</button>
 									</div>
 								))}
@@ -238,183 +293,269 @@ const Index = () => {
 					)}
 				</div>
 
-				{/* ================= SINGLE ITEM ================= */}
-				{/* (unchanged styled single section — same as previous message) */}
-
-				{/* ---------- SINGLE ITEM CARD ---------- */}
-				<div className="mx-4 md:mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 hover:border-rose-600 transition">
-
-					{/* PHOTOS */}
-					<p className="font-semibold mt-2">Item Photos (up to 5)</p>
-
+				{/* SINGLE UP TO 5 */}
+				<div
+					className="mx-4 md:mx-auto py-8 px-8 w-full md:w-[48rem] border-2 rounded-lg border-gray-200 cursor-pointer hover:border-rose-600 transition-transform duration-200 hover:-translate-y-[2px]"
+					onDragOver={(e) => e.preventDefault()}
+					onDrop={(e) => {
+						e.preventDefault();
+						const files = Array.from(e.dataTransfer.files);
+						handleDropUpload(files, setPhotos, 5);
+					}}
+				>
+					<div className="flex flex-col md:flex-row">
+						<div className="bg-rose-600 shadow-lg shadow-rose-500/50 w-fit p-3 rounded-md md:mr-2">
+							<CameraAltIcon className="w-6 h-6 text-white" fontSize="large" />
+						</div>
+						<div className="flex flex-col space-between">
+							<h1 className="text-xl font-bold">Single Item</h1>
+							<p className="text-md">Add one item with detailed information</p>
+						</div>
+					</div>
+					<p className="font-semibold mt-6 mx-4">Item Photos (up to 5)</p>
 					<div className="flex flex-col md:flex-row w-full mt-2">
 						<div
-							onClick={() => triggerFileInput(singleRef)}
-							className="w-full md:w-1/2 rounded-lg bg-gray-100 border-pink-200 border-2 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg transition"
+							onClick={handleSingleClick}
+							className="w-full md:w-1/2 rounded-lg bg-gray-100 border-pink-200 border-2 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition"
 						>
 							<UploadIcon className="text-pink-300" />
 							<p>Upload from device</p>
+							{/* HIDDEN INPUTS */}
 							<input
-								ref={singleRef}
 								type="file"
-								multiple
+								ref={singleRef}
 								className="hidden"
+								accept="image/*"
+								multiple
 								onChange={(e) => handleSingleUpload(e, setPhotos)}
 							/>
 						</div>
-
 						<div
-							onClick={() => triggerFileInput(cameraRef)}
-							className="w-full md:w-1/2 rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg transition"
+							onClick={handleCameraClick}
+							className="w-full md:w-1/2 rounded-lg bg-gray-100 border-2 border-pink-200 border-dashed flex flex-col items-center text-center mx-4 p-4 space-y-2 hover:border-rose-400 hover:bg-pink-50 hover:shadow-lg hover:shadow-pink-100 transition"
 						>
 							<CameraAltIcon className="text-pink-300" />
 							<p>Take photo</p>
 							<input
-								ref={cameraRef}
 								type="file"
-								capture="environment"
+								ref={cameraRef}
 								className="hidden"
+								accept="image/*"
+								capture="environment"
 								onChange={(e) => handleSingleUpload(e, setPhotos)}
 							/>
 						</div>
 					</div>
-
-					{/* PHOTO GRID */}
+					{/* Single upload photo container */}
 					{photos.length > 0 && (
-						<div className="flex flex-col mt-4 rounded-lg border p-3">
-							<div className="flex justify-between items-center mb-3">
+						<div className="flex flex-col mt-3 mx-4 rounded-lg border">
+							<div className="flex flex-row justify-between mx-2 my-2 items-center">
 								<h2 className="font-semibold">Photos</h2>
-								<button
+								<div
 									onClick={scanWithAI}
-									className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-lg hover:bg-gray-300"
+									className=" flex flex-row items-center rounded-lg bg-gray-200 text-grey-300 px-2 py-1 text-gray-500 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md font-semibold cursor-pointer"
 								>
-									<BsRobot /> AI Scan
-								</button>
+									<BsRobot className="h-4 w-4 mr-2" />
+									<p>AI Scan</p>
+								</div>
 							</div>
-
-							<div className="grid grid-cols-2 gap-3">
-								{photos.map((photo, i) => (
-									<div key={i} className="relative">
+							<div className="grid grid-cols-2 gap-3 mt-3">
+								{photos.map((photo, index) => (
+									<div key={index} className="relative group">
 										<img
 											src={photo.preview}
+											alt=""
 											className="w-full h-24 object-cover rounded-lg"
 										/>
 										<button
-											onClick={() => removeImage(i, photos, setPhotos)}
-											className="absolute top-1 right-1 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-white"
+											type="button"
+											onClick={() => removeImage(index, photos, setPhotos)}
+											className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center bg-red-600 cursor-pointer"
 										>
-											<IoIosClose />
+											<IoIosClose className="w-3 h-3" />
 										</button>
 									</div>
 								))}
 							</div>
 						</div>
 					)}
-
-					{/* GARMENT */}
-					<div className="rounded-lg bg-gray-100 border flex flex-col my-6 p-4 space-y-2">
-						<div className="flex items-center gap-2">
-							<FaShirt className="text-purple-400" />
+					{/* Item classification */}
+					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4">
+						<div className="flex flex-row space-x-1 items-center">
+							<FaShirt className="text-purple-300 w-4 h-4" />
 							<h2 className="font-semibold text-lg">Item Classification</h2>
 						</div>
-
-						<FormControl fullWidth>
-							<InputLabel>Select Garment type...</InputLabel>
-							<Select value={garmentType} onChange={handleTypeSelection}>
-								{garmentTypes.map((type) => (
-									<MenuItem key={type.value} value={type.value}>
-										<type.icon /> {type.label}
-									</MenuItem>
-								))}
+						<p className="font-semibold">
+							Garment type <span className="text-red-500">*</span>
+						</p>
+						<FormControl fullWidth className="w-64">
+							{' '}
+							{/* Apply a Tailwind width utility */}
+							<InputLabel id="select-label">Select Garment type...</InputLabel>
+							<Select
+								labelId="select-label"
+								id="simple-select"
+								value={garmentType}
+								onChange={handleTypeSelection}
+								className="text-sm border-gray-300 rounded-lg shadow-sm" // Apply Tailwind styles
+							>
+								{garmentTypes.map((type) => {
+									const Icon = type.icon;
+									return (
+										<MenuItem
+											key={type.value}
+											value={type.value}
+											className="flex space-x-2"
+										>
+											<Icon />
+											<p>{type.label}</p>
+										</MenuItem>
+									);
+								})}
 							</Select>
 						</FormControl>
+						<div className="flex flex-row space-x-2 items-center">
+							<BsFillInfoCircleFill className="text-purple-500" />
+							<p className="text-sm">
+								Required for inventory tracking and analytics
+							</p>
+						</div>
 					</div>
 
-					{/* PRICING */}
-					<div className="rounded-lg bg-gray-100 border flex flex-col my-6 p-4 space-y-3">
-						<div className="flex items-center gap-2">
-							<FaDollarSign className="text-blue-500" />
-							<h2 className="font-semibold text-lg">Pricing</h2>
+					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4">
+						<div className="flex flex-row space-x-1 items-center mb-2">
+							<FaDollarSign className="text-blue-500 h-4 w-4" />
+							<h2 className="font-semibold text-lg">Pricing Information</h2>
 						</div>
 
-						<input
-							value={purchasePrice ?? ''}
-							onChange={handlePurchasePriceChange}
-							placeholder="Purchase price"
-							className="border rounded-xl px-4 py-2"
-						/>
-
-						<FormControlLabel
-							control={
-								<Switch
-									checked={autoPricingChecked}
-									onChange={(e) => setAutoPricingChecked(e.target.checked)}
-								/>
-							}
-							label="Auto pricing"
-						/>
-					</div>
-
-					{/* OPTIONAL COLLAPSIBLE */}
-					<div className="rounded-lg bg-gray-100 border my-6">
-						<button
-							type="button"
-							onClick={toggleOptionalInfo}
-							className="flex justify-between w-full p-4 font-semibold hover:bg-gray-200"
-						>
-							Item Details (optional)
-							<span>{hasOptionalInfo ? 'Hide' : 'Show'}</span>
-						</button>
-
-						{hasOptionalInfo && (
-							<div className="px-4 pb-4 space-y-3">
+						<div className="flex flex-row space-x-2">
+							<div className="w-full flex flex-col space-y-1">
+								<p className="font-semibold">Purchase price ($)</p>
 								<input
-									value={singleItem.source}
-									onChange={(e) =>
-										handleOptionalInfoChange('source', e.target.value)
-									}
-									placeholder="Source"
-									className="border rounded-xl px-4 py-2 w-full"
-								/>
-								<input
-									value={singleItem.description}
-									onChange={(e) =>
-										handleOptionalInfoChange('description', e.target.value)
-									}
-									placeholder="Description"
-									className="border rounded-xl px-4 py-2 w-full"
-								/>
-								<input
-									value={customTags}
-									onChange={(e) => setCustomTags(e.target.value)}
-									placeholder="Tags"
-									className="border rounded-xl px-4 py-2 w-full"
+									type="text"
+									value={purchasePrice ?? ''}
+									onChange={handlePurchasePriceChange}
+									placeholder="0.00"
+									className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								/>
 							</div>
-						)}
-					</div>
+							<div className="flex flex-col w-full space-y-1">
+								<p className="font-semibold">
+									Listing price ($){' '}
+									{autoPricingChecked ? (
+										''
+									) : (
+										<span className="text-red-500">*</span>
+									)}
+								</p>
+								<input
+									type="text"
+									value={
+										autoPricingChecked
+											? 'Auto Calculated'
+											: singleItem.listingPrice
+									}
+									onChange={(e) =>
+										setSingleItem({
+											...singleItem,
+											listingPrice: Number(e.target.value),
+										})
+									}
+									disabled={autoPricingChecked}
+									placeholder={autoPricingChecked ? 'Auto Calculated' : '0.00'}
+									className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								/>
+								<FormControlLabel
+									control={
+										<Switch
+											checked={autoPricingChecked}
+											onChange={(e) => setAutoPricingChecked(e.target.checked)}
+										/>
+									}
+									label={
+										autoPricingChecked
+											? 'Auto Pricing Enabled'
+											: 'Auto Pricing Disabled'
+									}
+								/>
+								<div className="flex flex-row space-x-2 items-center">
+									<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
+									<p className="text-sm">
+										Automatically calculated based on your settings (
+										{isPercentage ? `${percentageMarkup}%` : `$${fixedMarkup}`})
+									</p>
+								</div>
+							</div>
+						</div>
+						{/* OPTIONAL COLLAPSIBLE */}
+						<div className="rounded-lg bg-gray-100 border my-6">
+							<button
+								type="button"
+								onClick={toggleOptionalInfo}
+								className="flex justify-between w-full p-4 font-semibold hover:bg-gray-200"
+							>
+								Item Details (optional)
+								<span>{hasOptionalInfo ? 'Hide' : 'Show'}</span>
+							</button>
 
-					<button
-						onClick={handleAddSingleItem}
-						className="bg-pink-400 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full mx-auto block mt-6"
-					>
-						Add Item
-					</button>
+							{hasOptionalInfo && (
+								<div className="px-4 pb-4 space-y-3">
+									<input
+										value={singleItem.source}
+										onChange={(e) =>
+											handleOptionalInfoChange('source', e.target.value)
+										}
+										placeholder="Source"
+										className="border rounded-xl px-4 py-2 w-full"
+									/>
+									<input
+										value={singleItem.description}
+										onChange={(e) =>
+											handleOptionalInfoChange('description', e.target.value)
+										}
+										placeholder="Description"
+										className="border rounded-xl px-4 py-2 w-full"
+									/>
+									<input
+										value={customTags}
+										onChange={(e) => setCustomTags(e.target.value)}
+										placeholder="Tags"
+										className="border rounded-xl px-4 py-2 w-full"
+									/>
+								</div>
+							)}
+						</div>
+
+						<button
+							onClick={handleAddSingleItem}
+							className="bg-pink-400 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full mx-auto block"
+						>
+							Add Item
+						</button>
+					</div>
 				</div>
 
 				{isAnalyzing && (
-					<div className="fixed p-4 bg-blue-50 border rounded-lg animate-pulse">
-						Gemini AI scanning…
+					<div className="w-full fixed mx-4 z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center animate-pulse">
+						<div className="mr-3">
+							<div
+								className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+								style={{ animationDelay: '0s' }}
+							></div>
+						</div>
+						<p className="text-blue-700 font-medium text-sm">
+							Gemini AI is scanning your photo for details...
+						</p>
 					</div>
 				)}
-
 				{isUploading && (
-					<div className="fixed p-6 bg-blue-50 border rounded-lg flex flex-col items-center gap-3">
-						<CircularProgress size={60} />
-						Uploading…
+					<div className="w-full max-w-[64rem] fixed mx-4 z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex flex-col items-center gap-3">
+						<CircularProgress size={60} thickness={3} />
+						<p className="text-blue-700 font-medium text-md">
+							Uploading and processing your items...
+						</p>
 					</div>
 				)}
-
 			</main>
 		</div>
 	);
