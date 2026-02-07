@@ -67,7 +67,8 @@ const Header = () => {
 			className="
 				sticky top-0 z-20
 				border-b border-white/10
-				bg-gradient-to-r from-violet-300 to-pink-300
+				bg-gradient-to-r from-violet-300 to-pink-300 
+				dark:bg-gradient-to-r dark:from-violet-700 dark:to-pink-700
 			"
 		>
 			<div className="mx-auto flex w-full max-w-[72rem] items-center justify-between px-4 py-5">

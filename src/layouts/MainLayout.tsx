@@ -16,7 +16,7 @@ const MainLayout = () => {
 		!isLoading && !user && !HIDE_PREVIEW_ROUTES.includes(location.pathname);
 
 	return (
-		<div className="min-h-screen flex flex-col relative">
+		<div className="min-h-screen flex flex-col relative dark:bg-zinc-500 dark:text-zinc-100">
 			<Header />
 			<main className="flex-1 overflow-y-auto">
 				<Outlet />

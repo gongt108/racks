@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/supabaseClient';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/context/SettingsContext';
@@ -21,6 +21,28 @@ const Settings = () => {
 	const [isEditingValue, setIsEditingValue] = useState(false);
 	const activeValue = isPercentage ? percentageMarkup : fixedMarkup;
 	const setActiveValue = isPercentage ? setPercentageMarkup : setFixedMarkup;
+	const [dark, setDark] = useState(false);
+
+	useEffect(() => {
+		const saved = localStorage.getItem('theme');
+		const prefersDark = window.matchMedia(
+			'(prefers-color-scheme: dark)',
+		).matches;
+
+		if (saved === 'dark' || (!saved && prefersDark)) {
+			document.documentElement.classList.add('dark');
+			setDark(true);
+		}
+	}, []);
+
+	const toggleDarkMode = () => {
+		const root = document.documentElement;
+		root.classList.toggle('dark');
+
+		const isDark = root.classList.contains('dark');
+		setDark(isDark);
+		localStorage.setItem('theme', isDark ? 'dark' : 'light');
+	};
 
 	const handleToggle = () => {
 		setIsPercentage(!isPercentage);
@@ -221,6 +243,24 @@ const Settings = () => {
 							</div>
 						</div>
 					</div>
+				</div>
+			</div>
+
+			{/* Dark mode toggle */}
+			<div className="rounded-xl border border-pink-200 bg-white shadow-lg max-w-[48rem] w-full p-6 mx-auto">
+				<div className="flex items-center justify-between">
+					<div>
+						<h3 className="font-semibold">Dark Mode</h3>
+						<p className="text-sm text-gray-600">
+							Toggle dark mode for the app
+						</p>
+					</div>
+					<button
+						onClick={toggleDarkMode}
+						className="px-4 py-2 rounded-xl bg-pink-500 text-white font-semibold hover:bg-pink-600 active:scale-95 transition focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+					>
+						{dark ? 'Disable Dark Mode' : 'Enable Dark Mode'}
+					</button>
 				</div>
 			</div>
 		</div>

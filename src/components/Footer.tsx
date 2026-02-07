@@ -41,7 +41,7 @@ const Footer = () => {
 	];
 
 	return (
-		<footer className="sticky bottom-0 border-t-2 border-pink-300 border-opacity-50 bg-white py-2">
+		<footer className="sticky bottom-0 border-t-2 border-pink-300 border-opacity-50 bg-white py-2 dark:bg-zinc-700 dark:border-pink-500 dark:border-opacity-70">
 			<div className="mx-auto flex w-full max-w-[72rem] justify-between px-4">
 				{tabs.map(({ id, label, path, Icon }) => {
 					const isActive = activeTab === id;
