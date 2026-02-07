@@ -44,6 +44,7 @@ const Index = () => {
 	const [bulkPhotos, setBulkPhotos] = useState<PhotoItem[]>([]);
 	const [isUploading, setIsUploading] = useState(false);
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
+	const [hasOptionalInfo, setHasOptionalInfo] = useState(false);
 
 	const [singleItem, setSingleItem] = useState({
 		photos: [] as File[],
@@ -84,6 +85,8 @@ const Index = () => {
 		}
 	};
 
+	const toggleOptionalInfo = () => setHasOptionalInfo((p) => !p);
+
 	const handleOptionalInfoChange = (field: string, value: string) => {
 		setSingleItem((prevState) => ({
 			...prevState,
@@ -96,22 +99,9 @@ const Index = () => {
 			data: { user },
 		} = await supabase.auth.getUser();
 
-		console.log(JSON.stringify(user, null, 2));
-
-		if (!user) {
-			alert('You must be logged in to add an item');
-			return;
-		}
-
-		if (!garmentType) {
-			alert('Garment type is required');
-			return;
-		}
-
-		if (!purchasePrice) {
-			alert('Purchase price is required');
-			return;
-		}
+		if (!user) return alert('Login required');
+		if (!garmentType) return alert('Garment type required');
+		if (!purchasePrice) return alert('Purchase price required');
 
 		try {
 			const listingPrice = autoPricingChecked
@@ -390,7 +380,7 @@ const Index = () => {
 						</div>
 					)}
 					{/* Item classification */}
-					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4 space-y-2">
+					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4">
 						<div className="flex flex-row space-x-1 items-center">
 							<FaShirt className="text-purple-300 w-4 h-4" />
 							<h2 className="font-semibold text-lg">Item Classification</h2>
@@ -432,8 +422,8 @@ const Index = () => {
 						</div>
 					</div>
 
-					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4 space-y-2">
-						<div className="flex flex-row space-x-1 items-center">
+					<div className="rounded-lg bg-gray-100 border flex flex-col mx-4 my-6 p-4">
+						<div className="flex flex-row space-x-1 items-center mb-2">
 							<FaDollarSign className="text-blue-500 h-4 w-4" />
 							<h2 className="font-semibold text-lg">Pricing Information</h2>
 						</div>
@@ -497,64 +487,54 @@ const Index = () => {
 								</div>
 							</div>
 						</div>
-					</div>
-					<div className="rounded-lg bg-gray-20 border flex flex-col mx-4 my-6 p-4 space-y-2">
-						<div className="flex flex-row space-x-1 items-center">
-							<BsFillInfoCircleFill className="text-blue-500 h-5 w-5" />
-							<h2 className="font-semibold text-lg">Item Details (optional)</h2>
+						{/* OPTIONAL COLLAPSIBLE */}
+						<div className="rounded-lg bg-gray-100 border my-6">
+							<button
+								type="button"
+								onClick={toggleOptionalInfo}
+								className="flex justify-between w-full p-4 font-semibold hover:bg-gray-200"
+							>
+								Item Details (optional)
+								<span>{hasOptionalInfo ? 'Hide' : 'Show'}</span>
+							</button>
+
+							{hasOptionalInfo && (
+								<div className="px-4 pb-4 space-y-3">
+									<input
+										value={singleItem.source}
+										onChange={(e) =>
+											handleOptionalInfoChange('source', e.target.value)
+										}
+										placeholder="Source"
+										className="border rounded-xl px-4 py-2 w-full"
+									/>
+									<input
+										value={singleItem.description}
+										onChange={(e) =>
+											handleOptionalInfoChange('description', e.target.value)
+										}
+										placeholder="Description"
+										className="border rounded-xl px-4 py-2 w-full"
+									/>
+									<input
+										value={customTags}
+										onChange={(e) => setCustomTags(e.target.value)}
+										placeholder="Tags"
+										className="border rounded-xl px-4 py-2 w-full"
+									/>
+								</div>
+							)}
 						</div>
-						<div className="w-full flex flex-col space-y-1 mb-2">
-							<p className="font-semibold">Source</p>
-							<input
-								type="text"
-								value={singleItem.source}
-								onChange={(e) =>
-									handleOptionalInfoChange('source', e.target.value)
-								}
-								placeholder="e.g. Thrift Store, Zara, etc."
-								className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-							/>
-						</div>
-						<div className="w-full flex flex-col space-y-1 mb-4">
-							<p className="font-semibold">Description</p>
-							<input
-								type="text"
-								value={singleItem.description}
-								onChange={(e) =>
-									handleOptionalInfoChange('description', e.target.value)
-								}
-								placeholder="Brief description of the item"
-								className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-							/>
-						</div>
-						<div className="w-full flex flex-col space-y-1 mb-4">
-							<p className="font-semibold">
-								Custom Tags{' '}
-								<span className="text-gray-500 text-sm">
-									(separate by comma)
-								</span>
-							</p>
-							<input
-								type="text"
-								value={customTags}
-								onChange={(e) => setCustomTags(e.target.value)}
-								placeholder="e.g. vintage, summer, etc."
-								className="w-full border border-gray-300 rounded-xl pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-							/>
-							<p className="text-sm font-light">
-								{' '}
-								Add custom tags to organize your items. Auto-tags will be
-								generated too!
-							</p>
-						</div>
+
+						<button
+							onClick={handleAddSingleItem}
+							className="bg-pink-400 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full mx-auto block"
+						>
+							Add Item
+						</button>
 					</div>
 				</div>
-				<button
-					className="bg-pink-300 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full mx-auto mt-4"
-					onClick={handleAddSingleItem}
-				>
-					Add Item
-				</button>
+
 				{isAnalyzing && (
 					<div className="w-full fixed mx-4 z-10 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center animate-pulse">
 						<div className="mr-3">
